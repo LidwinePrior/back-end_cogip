@@ -17,14 +17,17 @@ class Database
         $user = $_ENV["USER"] ?? null;
         $password = $_ENV["PASSWORD"] ?? null;
 
-        try {
-            // Votre code d'initialisation de la connexion à la base de données ici
-            $this->connection = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password);
+        try 
+        {
+            $this->connection = new PDO("mysql://$user:$password@$host/$dbname;charset=utf8", $user, $password);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
+        }
+        catch (PDOException $e) 
+        {
             // Gérer les erreurs de connexion ici
             die('Erreur : ' . $e->getMessage());
         }
+
     }
 
     public static function getInstance()
@@ -39,4 +42,6 @@ class Database
     {
         return $this->connection;
     }
+
 }
+     
