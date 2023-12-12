@@ -12,14 +12,14 @@ class Database
 
     private function __construct()
     {
-        $host = $_ENV["HOST"] ?? null;
-        $dbname = $_ENV["DBNAME"] ?? null;
-        $user = $_ENV["USER"] ?? null;
-        $password = $_ENV["PASSWORD"] ?? null;
+        $host = "db4free.net:3306";
+        $dbname = "cogip_project";
+        $user = "keller6";
+        $password = "Le_Mot_De_Passe_:_Cogip_Project_Keller_6";
 
-        try 
-        {
-            $this->connection = new PDO("mysql://$user:$password@$host/$dbname;charset=utf8", $user, $password);
+        try {
+            // Votre code d'initialisation de la connexion à la base de données ici
+            $this->connection = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
         catch (PDOException $e) 
