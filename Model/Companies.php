@@ -3,6 +3,8 @@
 namespace App\Model;
 
 use App\Model\BaseModel;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use PDO;
 use Exception;
 
@@ -26,8 +28,19 @@ class Companies extends BaseModel
         $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
 
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
-        header('Content-Type: application/json');
-        echo $jsonData;
+        echo new JsonResponse(
+            $jsonData,
+            empty($companiesData) ? Response::HTTP_NOT_FOUND : Response::HTTP_OK,
+            [
+                'content-type' => 'application/json',
+                'status' => 'success',
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Credentials' => 'false'
+
+            ],
+            true
+        );
     }
 
 
@@ -49,8 +62,19 @@ class Companies extends BaseModel
         $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
 
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
-        header('Content-Type: application/json');
-        echo $jsonData;
+        echo new JsonResponse(
+            $jsonData,
+            empty($companiesData) ? Response::HTTP_NOT_FOUND : Response::HTTP_OK,
+            [
+                'content-type' => 'application/json',
+                'status' => 'success',
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Credentials' => 'false'
+
+            ],
+            true
+        );
     }
 
 
@@ -66,9 +90,22 @@ class Companies extends BaseModel
         $query->bindParam(':id', $id, PDO::PARAM_INT);
         $query->execute();
         $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
+        // Convertir en JSON
+        $companiesData = json_encode($companiesid, JSON_PRETTY_PRINT);
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
-        header('Content-Type: application/json');
-        echo json_encode($companiesid, JSON_PRETTY_PRINT);
+        echo new JsonResponse(
+            $companiesData,
+            empty($companiesid) ? Response::HTTP_NOT_FOUND : Response::HTTP_OK,
+            [
+                'content-type' => 'application/json',
+                'status' => 'success',
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Credentials' => 'false'
+
+            ],
+            true
+        );
     }
 
     // POST NEW COMPANY  ////////////////////////////////////////////////////////////////
