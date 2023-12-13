@@ -220,7 +220,7 @@ class Invoices extends BaseModel
     
         echo $jsonData;
     }
-    public function updateInvoice($id)
+    public function update($id)
     {
         try {
             // Récupérer le corps de la requête JSON

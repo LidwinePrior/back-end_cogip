@@ -1,28 +1,41 @@
 <?php
+namespace App\Model;
+
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
+use Kreait\Firebase\Auth\SignInResult;
 
-class Auth
-{
-    private $firebase;
+$serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/path/to/your/firebase/credentials.json');
 
-    public function __construct()
-    {
-        $serviceAccount = ServiceAccount::fromJsonFile(__DIR__ . '/firebase_credentials.json');
-        $this->firebase = (new Factory)
-            ->withServiceAccount($serviceAccount)
-            ->create();
+$firebase = (new Factory)
+    ->withServiceAccount($serviceAccount)
+    ->create();
+
+$auth = $firebase->getAuth();
+
+function registerUser($email, $password) {
+    global $auth;
+    try {
+        $userProperties = [
+            'email' => $email,
+            'emailVerified' => false,
+            'password' => $password,
+            'disabled' => false,
+        ];
+        $createdUser = $auth->createUser($userProperties);
+        return $createdUser->uid;
+    } catch (Exception $e) {
+        return 'Error: ' . $e->getMessage();
     }
+}
 
-    public function loginUser($email, $password)
-    {
-        // Code pour se connecter à un utilisateur avec Firebase
-        // ...
-    }
-
-    public function createUser($email, $password)
-    {
-        // Code pour créer un utilisateur avec Firebase
-        // ...
+function loginUser($email, $password) {
+    global $auth;
+    try {
+        $signInResult = $auth->signInWithEmailAndPassword($email, $password);
+        $idTokenString = $signInResult->idToken();
+        return $idTokenString; // This is the API token
+    } catch (Exception $e) {
+        return 'Error: ' . $e->getMessage();
     }
 }
