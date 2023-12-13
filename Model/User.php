@@ -4,6 +4,7 @@ namespace App\Model;
 
 use App\Model\BaseModel;
 use App\Model\Error;
+use Firebase\JWT\JWT;
 use PDO;
 
 class User extends BaseModel
@@ -242,4 +243,63 @@ class User extends BaseModel
     
         echo $jsonData;
     }
+    public function login($email, $password)
+    {
+        $query = $this->connection->prepare(
+            "SELECT * FROM users WHERE email = :email AND password = :password"
+        );
+
+        $query->bindParam(':email', $email, PDO::PARAM_STR);
+        $query->bindParam(':password', $password, PDO::PARAM_STR);
+
+        $query->execute();
+        $user = $query->fetch(PDO::FETCH_ASSOC);
+
+        if (empty($user)) {
+            $statusCode = 401; // Unauthorized
+            $status = 'error';
+            $message = 'Invalid credentials';
+        } else {
+            // Generate JWT token
+            $token = $this->generateToken($user['id'], $user['email'], $user['role']);
+
+            $statusCode = 200;
+            $status = 'success';
+            $message = 'Login successful';
+            $data = ['token' => $token];
+
+            // You may want to store the token in the database or in a secure session.
+            // For simplicity, we are returning it in the response.
+        }
+
+        $response = [
+            'message' => $message,
+            'code' => $statusCode,
+            'content-type' => 'application/json',
+            'status' => $status,
+            'data' => $data ?? null,
+        ];
+
+        $jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+
+        echo $jsonData;
+    }
+
+    private function generateToken($userId, $email, $role)
+    {
+        $secretKey = 'your_secret_key'; // Replace with your actual secret key
+
+        $payload = [
+            'user_id' => $userId,
+            'email' => $email,
+            'role' => $role,
+            'exp' => time() + (60 * 60), // Token expiration time (1 hour)
+        ];
+
+        return JWT::encode($payload, $secretKey, 'HS256');
+    }
+
 }
