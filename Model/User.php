@@ -197,4 +197,59 @@ class User extends BaseModel
         echo $jsonData;
 
     }
+    // CREATE USER  ////////////////////////////////////////////////////////////////////////////////////////////
+
+    public function createUser($firstName, $lastName, $email, $password)
+    {
+        try {
+            // Insérer dans la table users
+            $query = $this->connection->prepare(
+                "INSERT INTO users (first_name, last_name, email, password, role_id, created_at, updated_at)
+                VALUES (:first_name, :last_name, :email, :password, 2, NOW(), NOW())"
+            );
+
+            $query->bindParam(':first_name', $firstName);
+            $query->bindParam(':last_name', $lastName);
+            $query->bindParam(':email', $email);
+            $query->bindParam(':password', $password);
+            return $query->execute();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+    public function getUserByEmail($email)
+    {
+        // Recherche de l'utilisateur dans la base de données
+        $query = $this->connection->prepare(
+            "SELECT email, password FROM users WHERE email = :email"        );
+
+        $query->bindParam(':email', $email, PDO::PARAM_STR);
+        $query->execute();
+        $user = $query->fetch(PDO::FETCH_ASSOC);
+
+        if (empty($user)) {
+            $statusCode = 404;
+            $status = 'error';
+        } else {
+            $statusCode = 200;
+            $status = 'success';
+        }
+
+        $response =
+        [
+            'message' =>  'User by email',
+            'code' => $statusCode,
+            'content-type' => 'application/json',
+            'status' => $status,
+            'data' => $user,
+        ];
+
+        $jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+
+        return $jsonData;
+    }
+
 }
