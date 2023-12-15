@@ -61,11 +61,12 @@ class Validator
     //valider email
     private static function validateEmail($value)
     {
-        // Utiliser la fonction filter_var pour valider l'e-mail
-        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+        // Utiliser une expression régulière pour valider l'e-mail
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $value)) {
             throw new InvalidArgumentException("L'adresse e-mail n'est pas valide.");
         }
     }
+
 
     //valider tva
     private static function validateTva($value)

@@ -305,6 +305,7 @@ class HomeController extends Controller
             // Gérer l'exception d'erreur de validation
             http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
+            return;
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation du contact."], JSON_PRETTY_PRINT);
