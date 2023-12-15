@@ -51,8 +51,8 @@ class Auth extends BaseModel
         // Génération du token JWT
         $tokenPayload = 
         [
-            "iss" => "localhost",
-            "aud" => "localhost",
+            "iss" => "api-cogip-329f9c72c66d.herokuapp.com",
+            "aud" => "api-cogip-329f9c72c66d.herokuapp.com",
             "iat" => time(),
             "exp" => time() + 3600,
             "email" => $email,

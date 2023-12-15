@@ -3,7 +3,7 @@
         'name' => 'becode/base',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '09a18f44894038f0a5a16cdbb8cfd0ae8e0bcf5c',
+        'reference' => 'afbea7e6d0fe499e640c19274d9a295e15f61594',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'becode/base' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '09a18f44894038f0a5a16cdbb8cfd0ae8e0bcf5c',
+            'reference' => 'afbea7e6d0fe499e640c19274d9a295e15f61594',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
