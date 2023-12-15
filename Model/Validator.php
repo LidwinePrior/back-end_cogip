@@ -40,6 +40,8 @@ class Validator
                 case 'phone':
                     self::validatePhone($sanitizedValue);
                     break;
+                case 'password':
+                    self::validatePassword($sanitizedValue);
                 default:
                     break;
             }
@@ -66,7 +68,7 @@ class Validator
     }
 
     //valider tva
-    public static function validateTva($value)
+    private static function validateTva($value)
     {
         // Extraire le pays et le numéro de TVA de la valeur
         $countryCode = strtoupper(substr($value, 0, 2));
@@ -110,5 +112,15 @@ class Validator
         if (!preg_match('/^[0-9\+\-\(\)\/\s]*$/', $value)) {
             throw new InvalidArgumentException("Le numéro de téléphone n'est pas valide.");
         }
+    }
+
+    //valider password et le hacher
+    private static function validatePassword($value, $minLength = 9)
+    {
+
+        if (strlen($value) < $minLength) {
+            throw new InvalidArgumentException("La longueur du nom doit avoir au moins $minLength caractères.");
+        }
+        $hash = password_hash($value, PASSWORD_DEFAULT);
     }
 }

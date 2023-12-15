@@ -86,6 +86,7 @@ class HomeController extends Controller
             //valider et sanitiser ici
             Validator::validateAndSanitize($typeName, 3, 50, 'name');
             Validator::validateAndSanitize($companyName, 3, 50, 'name');
+            Validator::validateAndSanitize($country, 3, 50, 'name');
             Validator::validateAndSanitize($tva, 'tva');
 
             // vérifier si le type_name existe dans la db
@@ -165,7 +166,9 @@ class HomeController extends Controller
             $companyName = $data['company_name'];
 
             //valider et sanitiser
+            Validator::validateAndSanitize($ref, 3, 50, 'name');
             Validator::validateAndSanitize($date_due, 'date');
+            Validator::validateAndSanitize($companyName, 3, 50, 'name');
 
 
 
@@ -262,6 +265,7 @@ class HomeController extends Controller
             Validator::validateAndSanitize($contactName, 3, 50, 'name');
             Validator::validateAndSanitize($email, 'email');
             Validator::validateAndSanitize($phone, 'phone');
+            Validator::validateAndSanitize($companyName, 3, 50, 'name');
 
 
             //vérifier si company_name existe déjà dans la db
