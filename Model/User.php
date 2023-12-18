@@ -4,12 +4,8 @@ namespace App\Model;
 
 use App\Model\BaseModel;
 use App\Model\Error;
-<<<<<<< HEAD
-use Firebase\JWT\JWT;
-=======
 
 use Exception;
->>>>>>> dev
 use PDO;
 
 class User extends BaseModel
@@ -43,20 +39,6 @@ class User extends BaseModel
             $statusCode = 200;
             $status = 'success';
         }
-<<<<<<< HEAD
-    
-        $response = 
-        [
-            'message' => 'List of all users',
-            'content-type' => 'application/json',
-            'number of users' => count($usersData),
-            'code' => $statusCode,
-            'content-type' => 'application/json',
-            'status' => $status,
-            'data' => $usersData,
-        ];
-    
-=======
 
         $response =
             [
@@ -67,7 +49,6 @@ class User extends BaseModel
                 'data' => $usersData,
             ];
 
->>>>>>> dev
         $jsonData = json_encode($response, JSON_PRETTY_PRINT);
 
         header('Content-Type: application/json');
@@ -261,7 +242,6 @@ class User extends BaseModel
 
         return $jsonData;
     }
-<<<<<<< HEAD
     public function update($id)
     {
         $query = $this->connection->prepare(
@@ -305,6 +285,3 @@ class User extends BaseModel
         echo $jsonData;
     }
 }
-=======
-}
->>>>>>> dev
