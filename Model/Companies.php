@@ -148,8 +148,8 @@ class Companies extends BaseModel
         $companyDetails = $query->fetch(PDO::FETCH_ASSOC);
 
         // Séparer les noms des contacts en un tableau
-        $companyDetails['contacts'] = explode(',', $companyDetails['contact_names']);
-        unset($companyDetails['contact_names']);
+        $companyDetails['contacts'] = explode(',', $companyDetails['contact_id']);
+        unset($companyDetails['contact_id']);
 
         return $companyDetails;
     }
