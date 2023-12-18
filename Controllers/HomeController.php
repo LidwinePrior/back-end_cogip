@@ -52,8 +52,7 @@ class HomeController extends Controller
     // Create USER   ////////////////////////////////////////////////////////
     public function createNewUser()
     {
-        try
-        {
+        try {
             // Récupérer le corps de la requête JSON
             $jsonBody = file_get_contents("php://input");
             // Transformer le JSON en un tableau PHP associatif
@@ -64,12 +63,16 @@ class HomeController extends Controller
             $email = $data['email'];
             $password = $data['password'];
 
+            Validator::validateAndSanitize($LastName, 3, 50, 'name');
+            Validator::validateAndSanitize($firstName, 3, 50, 'name');
+            Validator::validateAndSanitize($email, 3, 50, 'email');
+            Validator::validateAndSanitize($password, 9, 'password');
+
             //vérifier si email existe déjà dans la db
             $user = $this->userModel->getUserByEmail($email);
 
             //si l'email existe déjà -> message d'erreur
-            if (empty($user)) 
-            {
+            if (empty($user)) {
                 http_response_code(400);
                 echo json_encode(["message" => "L'email existe deja."]);
                 return;
@@ -89,10 +92,7 @@ class HomeController extends Controller
             header('Content-Type: application/json');
 
             echo json_encode($response, JSON_PRETTY_PRINT);
-
-        }
-        catch (Exception $e) 
-        {
+        } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation de l'utilisateur."], JSON_PRETTY_PRINT);
         }
@@ -310,10 +310,11 @@ class HomeController extends Controller
             $companyName = $data['company_name'];
 
             //valider et sanitiser
-            Validator::validateAndSanitize($contactName, 3, 50, 'name');
+            // Validator::validateAndSanitize($contactName, 3, 50, 'name');
             Validator::validateAndSanitize($email, 'email');
-            Validator::validateAndSanitize($phone, 'phone');
-            Validator::validateAndSanitize($companyName, 3, 50, 'name');
+            echo "Après validateAndSanitize, avant vérifications supplémentaires.";
+            // Validator::validateAndSanitize($phone, 'phone');
+            // Validator::validateAndSanitize($companyName, 3, 50, 'name');
 
 
             //vérifier si company_name existe déjà dans la db
@@ -340,23 +341,26 @@ class HomeController extends Controller
             $contactData['company_id'] = $companyId;
             //créer le contact
             $contact = $this->contactsModel->createContact($contactName, $companyId, $email, $phone);
-            $response =
-                [
-                    'data' => $contact,
-                    'status' => 200,
-                    'message' => 'Le contact a été créée avec succès.',
-                ];
+            $response = [
+                'data' => $contact,
+                'status' => 200,
+                'message' => 'Le contact a été créée avec succès.',
+            ];
 
             header('Content-Type: application/json');
             echo json_encode($response, JSON_PRETTY_PRINT);
         } catch (InvalidArgumentException $e) {
             // Gérer l'exception d'erreur de validation
-            http_response_code(400);
+            $response['status'] = 400; // Mettez à jour le statut en cas d'erreur de validation
             echo json_encode(["error" => $e->getMessage()]);
+            // Enregistrez l'erreur dans un fichier de journal ou envoyez-la à d'autres services de journalisation si nécessaire
+            error_log($e->getMessage(), 3, "C:\wamp64\www\error_log.txt");
             return;
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["message" => "Une erreur s'est produite lors de la creation du contact."], JSON_PRETTY_PRINT);
+            $response['status'] = 500; // Mettez à jour le statut en cas d'erreur générale
+            echo json_encode(["message" => "Une erreur s'est produite lors de la création du contact."], JSON_PRETTY_PRINT);
+            // Enregistrez l'erreur dans un fichier de journal ou envoyez-la à d'autres services de journalisation si nécessaire
+            error_log($e->getMessage(), 3, "C:\wamp64\www\error_log.txt");
         }
     }
 

@@ -2,6 +2,9 @@
 
 namespace App\Model;
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 use DateInvalidOperationException;
 use DragonBe\Vies\Vies;
 use DragonBe\Vies\ViesException;
@@ -16,6 +19,9 @@ class Validator
     {
         //utiliser condition ternaire pour vérifier si la valeur est définie et non vide
         $sanitizedValue = isset($value) && !empty($value) ? htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8')  : null;
+        // Affichage des valeurs avant la validation
+        echo "Valeur avant validation : " . $value . "<br>";
+        echo "Valeur après validation : " . $sanitizedValue . "<br>";
 
         //si la valeur est vide ou null alors ->message d'erreur
         if ($sanitizedValue === null) {
@@ -42,10 +48,13 @@ class Validator
                     break;
                 case 'password':
                     self::validatePassword($sanitizedValue);
+                    break;
                 default:
                     break;
             }
         }
+
+        $response['status'] = 200;
         return $sanitizedValue;
     }
 
@@ -61,11 +70,21 @@ class Validator
     //valider email
     private static function validateEmail($value)
     {
+        // Affichez le message pour vérifier si vous entrez dans cette fonction
+        echo "Dans validateEmail. ";
+
         // Utiliser une expression régulière pour valider l'e-mail
         if (!filter_var($value, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $value)) {
+            // Affichez le message d'erreur
+            echo "Erreur de validation de l'e-mail. ";
+            die("L'adresse e-mail n'est pas valide.");
             throw new InvalidArgumentException("L'adresse e-mail n'est pas valide.");
         }
+
+        // Affichez un message pour indiquer que la validation de l'e-mail a réussi
+        echo "Validation de l'e-mail réussie. ";
     }
+
 
 
     //valider tva
@@ -106,14 +125,15 @@ class Validator
         }
     }
 
-    //valider le phone number
+    //valider le numéro de téléphone
     private static function validatePhone($value)
     {
         // Valider que le numéro de téléphone suit le format souhaité
-        if (!preg_match('/^[0-9\+\-\(\)\/\s]*$/', $value)) {
+        if (!preg_match('/^[0-9\+\-\(\)\/\s]*$/', $value) || strlen($value) < 5) {
             throw new InvalidArgumentException("Le numéro de téléphone n'est pas valide.");
         }
     }
+
 
     //valider password et le hacher
     private static function validatePassword($value, $minLength = 9)
