@@ -4,18 +4,38 @@ namespace App\Routes;
 
 use Bramus\Router\Router;
 use App\Controllers\HomeController;
+use App\Model\Auth;
 
 
+$auth = new Auth($_ENV["SECRET_KEY"]);
 $router = new Router();
 
-if (isset($_SERVER['HTTP_ORIGIN'])) {
+if (isset($_SERVER['HTTP_ORIGIN'])) 
+{
     // Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
     // you want to allow, and if so:
     header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
-$router->mount('/api', function () use ($router) {
+
+// Middleware pour vérifier le token dans les requêtes GET
+$router->before('GET', '/api/(.*)', function ($route) use ($auth) {
+    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+
+});
+
+$router->mount('/api', function () use ($router, $auth) 
+{
+    // LOGIN /////////////////////////////////////////////////////////////////
+    $router->get('/login', function () use ($auth) 
+    {
+        
+        $email = $_GET['email'] ?? 'john.doe@example.com';
+        $password = $_GET['password'] ?? 'test123';
+        
+        $auth->authenticate($email, $password);
+    });
     // GET METHOD  //////////////////////////////////////////////////////
 
     // USERS /////////////////////////////////////////////////////////////////
@@ -79,6 +99,10 @@ $router->mount('/api', function () use ($router) {
         (new HomeController())->createNewInvoice();
     });
 
+    // USER ////////////////////////////////////////////
+    $router->post('/register', function () {
+        (new HomeController())->createNewUser();
+     });
     // DELETE METHOD  ////////////////////////////////////////////////////////////////
 
     // USER /////////////////////////////////////////////////////////////////////

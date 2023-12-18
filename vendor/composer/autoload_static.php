@@ -81,8 +81,13 @@ class ComposerStaticInit8e38566b8dfc5b7183fea771bb678f07
             'Firebase\\JWT\\' => 13,
             'Fig\\Http\\Message\\' => 17,
         ),
+        'F' => 
+        array (
+            'Firebase\\JWT\\' => 13,
+        ),
         'D' => 
         array (
+            'DragonBe\\Vies\\' => 14,
             'Dotenv\\' => 7,
         ),
         'B' => 
@@ -198,25 +203,13 @@ class ComposerStaticInit8e38566b8dfc5b7183fea771bb678f07
         array (
             0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
         ),
-        'Google\\Cloud\\Storage\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/google/cloud-storage/src',
-        ),
-        'Google\\Cloud\\Core\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/google/cloud-core/src',
-        ),
-        'Google\\Auth\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/google/auth/src',
-        ),
         'Firebase\\JWT\\' => 
         array (
             0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
-        'Fig\\Http\\Message\\' => 
+        'DragonBe\\Vies\\' => 
         array (
-            0 => __DIR__ . '/..' . '/fig/http-message-util/src',
+            0 => __DIR__ . '/..' . '/dragonbe/vies/src/Vies',
         ),
         'Dotenv\\' => 
         array (
