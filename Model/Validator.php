@@ -70,19 +70,12 @@ class Validator
     //valider email
     private static function validateEmail($value)
     {
-        // Affichez le message pour vérifier si vous entrez dans cette fonction
-        echo "Dans validateEmail. ";
-
         // Utiliser une expression régulière pour valider l'e-mail
         if (!filter_var($value, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $value)) {
             // Affichez le message d'erreur
-            echo "Erreur de validation de l'e-mail. ";
-            die("L'adresse e-mail n'est pas valide.");
+
             throw new InvalidArgumentException("L'adresse e-mail n'est pas valide.");
         }
-
-        // Affichez un message pour indiquer que la validation de l'e-mail a réussi
-        echo "Validation de l'e-mail réussie. ";
     }
 
 

@@ -192,28 +192,27 @@ class Companies extends BaseModel
         );
 
         $query->bindParam(':id', $id, PDO::PARAM_INT);
-        $query->execute();
-        $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
+        $success = $query->execute();
 
-        // Convertir en JSON
-        $jsonData = json_encode($companiesid, JSON_PRETTY_PRINT);
 
-        if (empty($companiesid)) {
-            $statusCode = 500;
-            $status = 'error';
-        } else {
+
+        // Vérifier si la suppression a réussi
+        if ($success) {
             $statusCode = 200;
             $status = 'success';
+            $message = 'Company deleted successfully.';
+        } else {
+            $statusCode = 500;
+            $status = 'error';
+            $message = 'Failed to delete company.';
         }
 
-        $response =
-            [
-                'message' => 'List of companies by id',
-                'content-type' => 'application/json',
-                'code' => $statusCode,
-                'status' => $status,
-                'data' => $companiesid,
-            ];
+        $response = [
+            'message' => $message,
+            'content-type' => 'application/json',
+            'code' => $statusCode,
+            'status' => $status,
+        ];
 
         $jsonData = json_encode($response, JSON_PRETTY_PRINT);
 
