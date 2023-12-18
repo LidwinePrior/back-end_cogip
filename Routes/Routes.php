@@ -16,6 +16,8 @@ if (isset($_SERVER['HTTP_ORIGIN']))
     // you want to allow, and if so:
     header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
     header('Access-Control-Allow-Credentials: true');
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
 
@@ -28,13 +30,17 @@ $router->before('GET', '/api/(.*)', function ($route) use ($auth) {
 $router->mount('/api', function () use ($router, $auth) 
 {
     // LOGIN /////////////////////////////////////////////////////////////////
-    $router->get('/login', function () use ($auth) 
+    $router->post('/login', function () use ($auth) 
     {
-        
-        $email = $_GET['email'] ?? 'john.doe@example.com';
-        $password = $_GET['password'] ?? 'test123';
+        $jsonBody = file_get_contents("php://input");
+        $data = json_decode($jsonBody, true);
+
+        $email = $data['email'];
+        $password = $data['password'];
         
         $auth->authenticate($email, $password);
+        $token = $auth->generateToken($email, $password);
+        $auth->verifyToken($token);
     });
     // GET METHOD  //////////////////////////////////////////////////////
 

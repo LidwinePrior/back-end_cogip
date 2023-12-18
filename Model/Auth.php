@@ -19,31 +19,38 @@ class Auth extends BaseModel
     public function authenticate($email, $password)
     {
         // Création d'une instance de la classe User
-        $userModel = new User();
-
-        // Appel de la méthode getUserByEmail
-        $user = $userModel->getUserByEmail($email);
-
-        $jsonUser = json_decode($user, true);
+        try
+        {
+            $userModel = new User();
         
-        $pwdUser = $jsonUser['data']['password'];
+            // Appel de la méthode getUserByEmail
+            $user = $userModel->getUserByEmail($email);
+
+            $jsonUser = json_decode($user, true);
+            
+            $pwdUser = $jsonUser['data']['password'];
        
-        
-
-
         // Vérification du mot de passe
         if ($password === $pwdUser) 
         {
             // Génération du token
             $token = $this->generateToken($email, $password);
-            return ['token' => $token];
+            header('Content-Type: application/json');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
+            http_response_code(200);
+            return  $token;
         } 
         else 
         {
             throw new \Exception("Email ou mot de passe incorrect", 401);
         }
-
-
+        }
+        catch (\Throwable $e) 
+        {
+            http_response_code($e->getCode());
+            echo json_encode(['message' => $e->getMessage()]);
+        }
     }
 
     private function generateToken($email, $password)
@@ -59,16 +66,17 @@ class Auth extends BaseModel
             "password" => $password,
         
         ];
-
-        echo JWT::encode($tokenPayload, $this->secretKey, 'HS256');
+        $token = JWT::encode($tokenPayload, $this->secretKey, 'HS256');
+        return $token;
     }
-
-    public function verifyToken($token)
+    public function checkSignature($token)
     {
-        // Vérification du token JWT
+        // Vérification de la signature du token JWT
         try 
         {
-            return JWT::decode($token, $this->secretKey, ['HS256']);
+            $decodedToken = JWT::decode($token, $this->secretKey, ['HS256']);
+            return true;
+
         } 
         catch (\Throwable $e) 
         {
