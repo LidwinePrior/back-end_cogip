@@ -141,8 +141,7 @@ class Companies extends BaseModel
             companies.country,
             companies.tva,
             companies.created_at AS company_creation,
-            GROUP_CONCAT(contacts.name) AS contact_names,
-            contacts.id AS contact_id
+            GROUP_CONCAT(CONCAT(contacts.name, ' (ID:', contacts.id, ')')) AS contact_info
         FROM 
             types 
         JOIN 
@@ -152,7 +151,7 @@ class Companies extends BaseModel
         WHERE 
             companies.id = :id
         GROUP BY 
-            types.name, companies.id, companies.name, companies.country, companies.tva, companies.created_at, contacts.id;
+            types.name, companies.id, companies.name, companies.country, companies.tva, companies.created_at;
         "
         );
         $query->bindParam(':id', $companyId, PDO::PARAM_INT);
