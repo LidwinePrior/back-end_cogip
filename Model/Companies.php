@@ -171,7 +171,7 @@ class Companies extends BaseModel
 
         // Vérifier si $companyDetails est null ou fals
         if (!$companyDetails) {
-            return [];
+            return null;
         }
 
         // Vérifier si 'contact_id' existe et n'est pas null ou false
