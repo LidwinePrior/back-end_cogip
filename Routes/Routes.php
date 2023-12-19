@@ -25,8 +25,8 @@ if (isset($_SERVER['HTTP_ORIGIN']))
  {
         // Récupère le JWT de l'en-tête Authorization
         $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
-        list($token) = sscanf($authorizationHeader, 'Bearer %s');
-
+        $token = str_replace('Bearer ', '', $authorizationHeader);
+        // Vérifie le JWT
         if ($auth->verifyToken($token) === true) 
         {
             // Le JWT est valide, procédez avec la logique de votre API
