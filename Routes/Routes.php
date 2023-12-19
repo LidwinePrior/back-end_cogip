@@ -21,6 +21,9 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
 $router->before('GET', '/api/(.*)', function () {
     $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 });
+$router->before('POST', '/api/(.*)', function () {
+    $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+});
 
 $router->mount('/api', function () use ($router) {
     // LOGIN /////////////////////////////////////////////////////////////////
