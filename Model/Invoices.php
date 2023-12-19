@@ -22,10 +22,6 @@ class Invoices extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -69,10 +65,6 @@ class Invoices extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -105,7 +97,6 @@ class Invoices extends BaseModel
     {
         $invoiceDetails = $this->getInvoiceById($invoiceId);
 
-        $jsonData = json_encode($invoiceDetails, JSON_PRETTY_PRINT);
         // Vérifier si la compagnie a été trouvée
         if (!$invoiceDetails) {
             $message = 'Invoice not found';

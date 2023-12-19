@@ -22,9 +22,6 @@ class Companies extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
 
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
         if (empty($companiesData)) {
@@ -65,11 +62,6 @@ class Companies extends BaseModel
         );
         $query->execute();
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
-
-
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
 
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
         if (empty($companiesData)) {

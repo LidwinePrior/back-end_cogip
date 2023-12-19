@@ -22,10 +22,6 @@ class Contacts extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -67,8 +63,6 @@ class Contacts extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -99,7 +93,6 @@ class Contacts extends BaseModel
     {
         $contactDetails = $this->getContactById($contactId);
 
-        $jsonData = json_encode($contactDetails, JSON_PRETTY_PRINT);
         // Vérifier si la compagnie a été trouvée
         if (!$contactDetails) {
             $message = 'Contact not found';
