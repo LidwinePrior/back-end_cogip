@@ -20,11 +20,24 @@ if (isset($_SERVER['HTTP_ORIGIN']))
     header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
+    // Vérifie le JWT
+ $router->before('POST', '/api/(.*)', function ($route) use ($auth) 
+ {
+        // Récupère le JWT de l'en-tête Authorization
+        $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
+        list($token) = sscanf($authorizationHeader, 'Bearer %s');
 
-// Middleware pour vérifier le token dans les requêtes GET
-$router->before('GET', '/api/(.*)', function ($route) use ($auth) {
-    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-
+        if ($auth->verifyToken($token) === true) 
+        {
+            // Le JWT est valide, procédez avec la logique de votre API
+            echo 'Le JWT est valide !';
+        
+        } 
+        else 
+        {
+            http_response_code(401);
+            echo 'Non autorisé';
+        }
 });
 
 $router->mount('/api', function () use ($router, $auth) 
@@ -32,16 +45,19 @@ $router->mount('/api', function () use ($router, $auth)
     // LOGIN /////////////////////////////////////////////////////////////////
     $router->post('/login', function () use ($auth) 
     {
+        // Récupération du body de la requête
         $jsonBody = file_get_contents("php://input");
         $data = json_decode($jsonBody, true);
 
+        // Récupération des données
         $email = $data['email'];
         $password = $data['password'];
-        
+
+        // Appel de la méthode authenticate
         $auth->authenticate($email, $password);
-        $token = $auth->generateToken($email, $password);
-        $auth->verifyToken($token);
+
     });
+
     // GET METHOD  //////////////////////////////////////////////////////
 
     // USERS /////////////////////////////////////////////////////////////////

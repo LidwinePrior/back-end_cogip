@@ -35,11 +35,15 @@ class Auth extends BaseModel
         {
             // Génération du token
             $token = $this->generateToken($email, $password);
+            // Envoi du token dans la réponse
             header('Content-Type: application/json');
             header('Access-Control-Allow-Origin: *');
             header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
             http_response_code(200);
-            return  $token;
+            echo json_encode([
+                'message' => 'Authentification réussie',
+                'token' => $token,
+            ]);
         } 
         else 
         {
@@ -69,14 +73,14 @@ class Auth extends BaseModel
         $token = JWT::encode($tokenPayload, $this->secretKey, 'HS256');
         return $token;
     }
-    public function checkSignature($token)
+ 
+    public function verifyToken($token)
     {
-        // Vérification de la signature du token JWT
+        // Vérification du token
         try 
         {
-            $decodedToken = JWT::decode($token, $this->secretKey, ['HS256']);
+            $token = JWT::decode($token, $this->secretKey, 'HS256');
             return true;
-
         } 
         catch (\Throwable $e) 
         {

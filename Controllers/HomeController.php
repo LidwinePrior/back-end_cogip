@@ -119,7 +119,8 @@ class HomeController extends Controller
     // POST COMPANY   ///////////////////////////////////////
     public function createNewCompany()
     {
-        try {
+        try 
+        {
             // Récupérer le corps de la requête JSON
             $jsonBody = file_get_contents("php://input");
 
@@ -144,7 +145,8 @@ class HomeController extends Controller
             $companyId = $this->companiesModel->getCompanyIdByName($companyName);
 
             //si la company existe déjà -> message d'erreur
-            if (!empty($companyId)) {
+            if (!empty($companyId)) 
+            {
                 http_response_code(400);
                 echo json_encode(["message" => "La company existe deja."]);
                 return;
@@ -161,11 +163,15 @@ class HomeController extends Controller
 
             header('Content-Type: application/json');
             echo json_encode($response, JSON_PRETTY_PRINT);
-        } catch (InvalidArgumentException $e) {
+        } 
+        catch (InvalidArgumentException $e) 
+        {
             // Gérer l'exception d'erreur de validation
             http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
-        } catch (Exception $e) {
+        } 
+        catch (Exception $e) 
+        {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation de la company."], JSON_PRETTY_PRINT);
         }
@@ -203,7 +209,8 @@ class HomeController extends Controller
     // POST INVOICE //////////////////////////////////////////////////
     public function createNewInvoice()
     {
-        try {
+        try 
+        {
             // Récupérer le corps de la requête JSON
             $jsonBody = file_get_contents("php://input");
             // Transformer le JSON en un tableau PHP associatif
@@ -218,21 +225,21 @@ class HomeController extends Controller
             Validator::validateAndSanitize($date_due, 'date');
             Validator::validateAndSanitize($companyName, 3, 50, 'name');
 
-
-
             // Vérifier si company_name existe déjà dans la db
             $companyId = $this->companiesModel->getCompanyIdByName($companyName);
             //vérifier si ref existe déjà ans la db
             $invoiceId = $this->invoicesModel->getInvoiceIdByName($ref);
 
             // Si l'entreprise n'existe pas -> message d'erreur
-            if (!$companyId) {
+            if (!$companyId) 
+            {
                 http_response_code(400);
                 echo json_encode(["message" => "L'entreprise n'existe pas. Veuillez creer l'entreprise avant d'ajouter une facture."]);
                 return;
             }
             //si la ref existe déjà -> message d'erreur
-            if (!empty($invoiceId)) {
+            if (!empty($invoiceId)) 
+            {
                 http_response_code(400);
                 echo json_encode(["message" => "La facture existe deja."]);
                 return;
@@ -253,11 +260,15 @@ class HomeController extends Controller
             header('Content-Type: application/json');
 
             echo json_encode($response, JSON_PRETTY_PRINT);
-        } catch (InvalidArgumentException $e) {
+        } 
+        catch (InvalidArgumentException $e) 
+        {
             // Gérer l'exception d'erreur de validation
             http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
-        } catch (Exception $e) {
+        } 
+        catch (Exception $e) 
+        {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation de la facture."], JSON_PRETTY_PRINT);
         }
@@ -296,8 +307,8 @@ class HomeController extends Controller
     // POST CONTACT  //////////////////////////////////////////////
     public function createNewContact()
     {
-
-        try {
+        try 
+        {
             // Récupérer le corps de la requête JSON
             $jsonBody = file_get_contents("php://input");
             // Transformer le JSON en un tableau PHP associatif
@@ -315,26 +326,26 @@ class HomeController extends Controller
             Validator::validateAndSanitize($phone, 'phone');
             Validator::validateAndSanitize($companyName, 3, 50, 'name');
 
-
             //vérifier si company_name existe déjà dans la db
             $companyId = $this->companiesModel->getCompanyIdByName($companyName);
             //vérifier si ref existe déjà ans la db
             $contactId = $this->contactsModel->getContactIdByName($contactName);
 
             //si l'entreprise n'existe pas ->message d'erreur
-            if (!$companyId) {
+            if (!$companyId) 
+            {
                 http_response_code(400);
                 echo json_encode(["message" => "L'entreprise n'existe pas. Veuillez creer l'entreprise avant d'ajouter un contact."]);
                 return;
             }
 
             //si le name existe déjà -> message d'erreur
-            if (!empty($contactId)) {
+            if (!empty($contactId)) 
+            {
                 http_response_code(400);
                 echo json_encode(["message" => "Le contact existe deja."]);
                 return;
             }
-
 
             //ajouter l'id de la company à company_id de contact
             $contactData['company_id'] = $companyId;
@@ -349,12 +360,16 @@ class HomeController extends Controller
 
             header('Content-Type: application/json');
             echo json_encode($response, JSON_PRETTY_PRINT);
-        } catch (InvalidArgumentException $e) {
+        }
+        catch (InvalidArgumentException $e) 
+        {
             // Gérer l'exception d'erreur de validation
             http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
             return;
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) 
+        {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation du contact."], JSON_PRETTY_PRINT);
         }
