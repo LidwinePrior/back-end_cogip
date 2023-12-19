@@ -44,6 +44,7 @@ class Auth extends BaseModel
                 'message' => 'Authentification réussie',
                 'token' => $token,
             ]);
+            return $token;
         } 
         else 
         {
@@ -62,8 +63,8 @@ class Auth extends BaseModel
         // Génération du token JWT
         $tokenPayload = 
         [
-            "iss" => "api-cogip-329f9c72c66d.herokuapp.com",
-            "aud" => "api-cogip-329f9c72c66d.herokuapp.com",
+            "iss" => "localhost:5173",
+            "aud" => "localhost:5173",
             "iat" => time(),
             "exp" => time() + 3600,
             "email" => $email,
@@ -74,17 +75,24 @@ class Auth extends BaseModel
         return $token;
     }
  
-    public function verifyToken($token)
+    public function verifyToken($token, $secretKey)
     {
-        // Vérification du token
+    
         try 
         {
-            $token = JWT::decode($token, $this->secretKey, 'HS256');
-            return true;
+            $decoded = JWT::decode($token, $this->secretKey);
+            return $decoded;
         } 
-        catch (\Throwable $e) 
+        catch (\Firebase\JWT\ExpiredException $e) 
         {
-            return false;
+            // Token has expired
+            return null;
+        } 
+        catch (\Exception $e) 
+        {
+            // Token is invalid
+            return null;
         }
     }
 }
+

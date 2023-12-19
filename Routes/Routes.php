@@ -27,7 +27,7 @@ if (isset($_SERVER['HTTP_ORIGIN']))
         $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
         $token = str_replace('Bearer ', '', $authorizationHeader);
         // Vérifie le JWT
-        if ($auth->verifyToken($token) === true) 
+        if ($token && $auth->verifyToken($token) === true) 
         {
             // Le JWT est valide, procédez avec la logique de votre API
             echo 'Le JWT est valide !';
@@ -35,8 +35,8 @@ if (isset($_SERVER['HTTP_ORIGIN']))
         } 
         else 
         {
-            http_response_code(401);
-            echo 'Non autorisé';
+            //http_response_code(401);
+            //echo 'Non autorisé';
         }
 });
 
