@@ -27,6 +27,20 @@ $router->before('POST', '/api/(.*)', function () {
     $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 });
 
+
+// Code pour gérer les requêtes OPTIONS
+$router->options('/api/(.*)', function () {
+    // Définir les en-têtes CORS pour les requêtes OPTIONS
+    // Ces en-têtes doivent être définis pour permettre les requêtes CORS
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
+    header('Access-Control-Max-Age: 86400');    // cache for 1 day
+
+    // Répondre avec un statut OK (200) pour les requêtes OPTIONS
+    http_response_code(200);
+    exit();
+});
+
 $router->mount('/api', function () use ($router) {
     // LOGIN /////////////////////////////////////////////////////////////////
     // $router->get('/login', function () use ($auth) {
