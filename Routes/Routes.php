@@ -7,7 +7,6 @@ use App\Controllers\HomeController;
 use App\Model\Auth;
 
 
-$auth = new Auth($_ENV["SECRET_KEY"]);
 $router = new Router();
 
 if (isset($_SERVER['HTTP_ORIGIN'])) {
@@ -19,19 +18,19 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
 }
 
 // Middleware pour vérifier le token dans les requêtes GET
-$router->before('GET', '/api/(.*)', function ($route) use ($auth) {
-    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+$router->before('GET', '/api/(.*)', function () {
+    $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 });
 
-$router->mount('/api', function () use ($router, $auth) {
+$router->mount('/api', function () use ($router) {
     // LOGIN /////////////////////////////////////////////////////////////////
-    $router->get('/login', function () use ($auth) {
+    // $router->get('/login', function () use ($auth) {
 
-        $email = $_GET['email'] ?? 'john.doe@example.com';
-        $password = $_GET['password'] ?? 'test123';
+    //     $email = $_GET['email'] ?? 'john.doe@example.com';
+    //     $password = $_GET['password'] ?? 'test123';
 
-        $auth->authenticate($email, $password);
-    });
+    //     $auth->authenticate($email, $password);
+    // });
     // GET METHOD  //////////////////////////////////////////////////////
 
     // USERS /////////////////////////////////////////////////////////////////

@@ -2,9 +2,6 @@
 
 namespace App\Model;
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 use DateInvalidOperationException;
 use DragonBe\Vies\Vies;
 use DragonBe\Vies\ViesException;
@@ -19,9 +16,6 @@ class Validator
     {
         //utiliser condition ternaire pour vérifier si la valeur est définie et non vide
         $sanitizedValue = isset($value) && !empty($value) ? htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8')  : null;
-        // Affichage des valeurs avant la validation
-        echo "Valeur avant validation : " . $value . "<br>";
-        echo "Valeur après validation : " . $sanitizedValue . "<br>";
 
         //si la valeur est vide ou null alors ->message d'erreur
         if ($sanitizedValue === null) {
@@ -46,15 +40,10 @@ class Validator
                 case 'phone':
                     self::validatePhone($sanitizedValue);
                     break;
-                case 'password':
-                    self::validatePassword($sanitizedValue);
-                    break;
                 default:
                     break;
             }
         }
-
-        $response['status'] = 200;
         return $sanitizedValue;
     }
 
@@ -70,18 +59,14 @@ class Validator
     //valider email
     private static function validateEmail($value)
     {
-        // Utiliser une expression régulière pour valider l'e-mail
-        if (!filter_var($value, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $value)) {
-            // Affichez le message d'erreur
-
+        // Utiliser la fonction filter_var pour valider l'e-mail
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("L'adresse e-mail n'est pas valide.");
         }
     }
 
-
-
     //valider tva
-    private static function validateTva($value)
+    public static function validateTva($value)
     {
         // Extraire le pays et le numéro de TVA de la valeur
         $countryCode = strtoupper(substr($value, 0, 2));
@@ -118,23 +103,12 @@ class Validator
         }
     }
 
-    //valider le numéro de téléphone
+    //valider le phone number
     private static function validatePhone($value)
     {
         // Valider que le numéro de téléphone suit le format souhaité
-        if (!preg_match('/^[0-9\+\-\(\)\/\s]*$/', $value) || strlen($value) < 5) {
+        if (!preg_match('/^[0-9\+\-\(\)\/\s]*$/', $value)) {
             throw new InvalidArgumentException("Le numéro de téléphone n'est pas valide.");
         }
-    }
-
-
-    //valider password et le hacher
-    private static function validatePassword($value, $minLength = 9)
-    {
-
-        if (strlen($value) < $minLength) {
-            throw new InvalidArgumentException("La longueur du nom doit avoir au moins $minLength caractères.");
-        }
-        $hash = password_hash($value, PASSWORD_DEFAULT);
     }
 }
