@@ -135,12 +135,33 @@ class Companies extends BaseModel
     private function getCompanyById($companyId)
     {
         $query = $this->connection->prepare(
-            "SELECT types.name AS type_name, companies.id, companies.name AS company_name, companies.country, companies.tva, companies.created_at AS company_creation, GROUP_CONCAT(contacts.id) AS contact_id
-        FROM types 
+            "SELECT
+            types.name AS type_name,
+            companies.id,
+            companies.name AS company_name,
+            companies.country,
+            companies.tva,
+            companies.created_at AS company_creation,
+            GROUP_CONCAT(contacts.id) AS contact_id,
+            GROUP_CONCAT(last_invoices.invoice_id) AS invoice_id
+        FROM types
         JOIN companies ON types.id = companies.type_id
         LEFT JOIN contacts ON companies.id = contacts.company_id
+        LEFT JOIN (
+            SELECT id AS invoice_id, id_company, created_at
+            FROM invoices
+            ORDER BY created_at DESC
+            LIMIT 5
+        ) AS last_invoices ON companies.id = last_invoices.id_company
         WHERE companies.id = :id
-        GROUP BY companies.id"
+        GROUP BY
+            types.name,
+            companies.id,
+            companies.name,
+            companies.country,
+            companies.tva,
+            companies.created_at
+        ORDER BY MAX(last_invoices.created_at) DESC;"
         );
         $query->bindParam(':id', $companyId, PDO::PARAM_INT);
         $query->execute();
