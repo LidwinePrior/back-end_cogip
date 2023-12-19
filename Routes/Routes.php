@@ -22,23 +22,16 @@ if (isset($_SERVER['HTTP_ORIGIN']))
 }
     // Vérifie le JWT
  $router->before('POST', '/api/(.*)', function ($route) use ($auth) 
- {
+ {  
         // Récupère le JWT de l'en-tête Authorization
         $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
-        $token = str_replace('Bearer ', '', $authorizationHeader);
-        // Vérifie le JWT
-        if ($token && $auth->verifyToken($token) === true) 
-        {
-            // Le JWT est valide, procédez avec la logique de votre API
-            echo 'Le JWT est valide !';
+        //var_dump($authorizationHeader);
         
-        } 
-        else 
-        {
-            //http_response_code(401);
-            //echo 'Non autorisé';
-        }
-});
+        $data = explode(' ', $authorizationHeader);
+        $token = $data[1];
+        var_dump($token);        // Vérifie le JWT
+        //$token = $auth->verifyToken($token, $_ENV["SECRET_KEY"]);
+    });
 
 $router->mount('/api', function () use ($router, $auth) 
 {
@@ -55,7 +48,6 @@ $router->mount('/api', function () use ($router, $auth)
 
         // Appel de la méthode authenticate
         $auth->authenticate($email, $password);
-
     });
 
     // GET METHOD  //////////////////////////////////////////////////////

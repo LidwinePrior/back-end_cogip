@@ -76,23 +76,24 @@ class Auth extends BaseModel
     }
  
     public function verifyToken($token, $secretKey)
-    {
-    
+    { 
+        $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
+        var_dump($authorizationHeader);
+        
+        $data = explode(' ', $authorizationHeader);
+        $token = $data[1];
+        var_dump($token);
+        /*
+        // Vérification du token JWT
         try 
         {
-            $decoded = JWT::decode($token, $this->secretKey);
-            return $decoded;
+            $decodedToken = JWT::decode($token, $secretKey, ['HS256']);
+            return true;
         } 
-        catch (\Firebase\JWT\ExpiredException $e) 
+        catch (\Throwable $e) 
         {
-            // Token has expired
-            return null;
-        } 
-        catch (\Exception $e) 
-        {
-            // Token is invalid
-            return null;
-        }
+            return false;
+        }*/
     }
 }
 
