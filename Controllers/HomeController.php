@@ -310,11 +310,10 @@ class HomeController extends Controller
             $companyName = $data['company_name'];
 
             //valider et sanitiser
-            // Validator::validateAndSanitize($contactName, 3, 50, 'name');
+            Validator::validateAndSanitize($contactName, 3, 50, 'name');
             Validator::validateAndSanitize($email, 'email');
-            echo "Après validateAndSanitize, avant vérifications supplémentaires.";
-            // Validator::validateAndSanitize($phone, 'phone');
-            // Validator::validateAndSanitize($companyName, 3, 50, 'name');
+            Validator::validateAndSanitize($phone, 'phone');
+            Validator::validateAndSanitize($companyName, 3, 50, 'name');
 
 
             //vérifier si company_name existe déjà dans la db
@@ -322,7 +321,7 @@ class HomeController extends Controller
             //vérifier si ref existe déjà ans la db
             $contactId = $this->contactsModel->getContactIdByName($contactName);
 
-            //si l'entreprise n'existe pas ->message d'erreur
+            //si la company n'existe pas ->message d'erreur
             if (!$companyId) {
                 http_response_code(400);
                 echo json_encode(["message" => "L'entreprise n'existe pas. Veuillez creer l'entreprise avant d'ajouter un contact."]);
@@ -330,7 +329,7 @@ class HomeController extends Controller
             }
 
             //si le name existe déjà -> message d'erreur
-            if (!empty($contactId)) {
+            if ($contactId !== null) {
                 http_response_code(400);
                 echo json_encode(["message" => "Le contact existe deja."]);
                 return;
@@ -344,23 +343,18 @@ class HomeController extends Controller
             $response = [
                 'data' => $contact,
                 'status' => 200,
-                'message' => 'Le contact a été créée avec succès.',
+                'message' => 'Le contact a été créé avec succès.',
             ];
 
             header('Content-Type: application/json');
             echo json_encode($response, JSON_PRETTY_PRINT);
         } catch (InvalidArgumentException $e) {
             // Gérer l'exception d'erreur de validation
-            $response['status'] = 400; // Mettez à jour le statut en cas d'erreur de validation
+            http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
-            // Enregistrez l'erreur dans un fichier de journal ou envoyez-la à d'autres services de journalisation si nécessaire
-            error_log($e->getMessage(), 3, "C:\wamp64\www\error_log.txt");
-            return;
         } catch (Exception $e) {
-            $response['status'] = 500; // Mettez à jour le statut en cas d'erreur générale
-            echo json_encode(["message" => "Une erreur s'est produite lors de la création du contact."], JSON_PRETTY_PRINT);
-            // Enregistrez l'erreur dans un fichier de journal ou envoyez-la à d'autres services de journalisation si nécessaire
-            error_log($e->getMessage(), 3, "C:\wamp64\www\error_log.txt");
+            http_response_code(500);
+            echo json_encode(["message" => "Une erreur s'est produite lors de la creation de la facture."], JSON_PRETTY_PRINT);
         }
     }
 
