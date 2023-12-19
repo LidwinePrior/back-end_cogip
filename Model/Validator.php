@@ -14,15 +14,16 @@ class Validator
 {
     public static function validateAndSanitize($value, $minLength = null, $maxLength = null, $type = null)
     {
-        //utiliser condition ternaire pour vérifier si la valeur est définie et non vide
-        $sanitizedValue = isset($value) && !empty($value) ? htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8')  : null;
-
-        //si la valeur est vide ou null alors ->message d'erreur
+        var_dump("Value before sanitization: " . $value);
+        // utiliser condition ternaire pour vérifier si la valeur est définie et non vide
+        $sanitizedValue = isset($value) && !empty($value) ? htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8') : null;
+        var_dump("Value after sanitization: " . $sanitizedValue);
+        // si la valeur est vide ou null alors ->message d'erreur
         if ($sanitizedValue === null) {
             throw new InvalidArgumentException("La valeur ne peut pas être vide.");
         }
 
-        //valider en fonction du type
+        // valider en fonction du type
         if ($type !== null) {
             switch ($type) {
                 case 'name':
@@ -47,10 +48,10 @@ class Validator
         return $sanitizedValue;
     }
 
-    //valider les names
+    // valider les names
     private static function validateName($value, $minLength = 3, $maxLength = 50)
     {
-        //valider longueur
+        // valider longueur
         if (strlen($value) < $minLength || strlen($value) > $maxLength) {
             throw new InvalidArgumentException("La longueur du nom doit être entre $minLength et $maxLength caractères.");
         }
@@ -65,7 +66,7 @@ class Validator
         }
     }
 
-    //valider tva
+    // valider tva
     public static function validateTva($value)
     {
         // Extraire le pays et le numéro de TVA de la valeur
@@ -91,7 +92,6 @@ class Validator
             throw new InvalidArgumentException("Erreur de validation du numero de TVA : " . $e->getMessage());
         }
     }
-
     //valider les dates
     private static function validateDate($value)
     {

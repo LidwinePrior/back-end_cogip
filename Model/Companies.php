@@ -134,14 +134,15 @@ class Companies extends BaseModel
             companies.country,
             companies.tva,
             companies.created_at AS company_creation,
-            GROUP_CONCAT(contacts.id) AS contact_id,
-            GROUP_CONCAT(last_invoices.invoice_id) AS invoice_id
+            GROUP_CONCAT(DISTINCT contacts.id) AS contact_id,
+            GROUP_CONCAT(DISTINCT last_invoices.invoice_id) AS invoice_id
         FROM types
         JOIN companies ON types.id = companies.type_id
         LEFT JOIN contacts ON companies.id = contacts.company_id
         LEFT JOIN (
-            SELECT id AS invoice_id, id_company, created_at
+            SELECT DISTINCT id AS invoice_id, id_company, created_at
             FROM invoices
+            WHERE id_company = :id
             ORDER BY created_at DESC
             LIMIT 5
         ) AS last_invoices ON companies.id = last_invoices.id_company
@@ -153,7 +154,8 @@ class Companies extends BaseModel
             companies.country,
             companies.tva,
             companies.created_at
-        ORDER BY MAX(last_invoices.created_at) DESC;"
+        ORDER BY MAX(last_invoices.created_at) DESC;
+        "
         );
         $query->bindParam(':id', $companyId, PDO::PARAM_INT);
         $query->execute();
@@ -174,6 +176,16 @@ class Companies extends BaseModel
         } else {
             // Si 'contact_id' n'existe pas, est null ou est false, définir un tableau vide
             $companyDetails['contacts'] = [];
+        }
+
+        // Vérifier si 'invoice_id' existe et n'est pas null ou false
+        if (isset($companyDetails['invoice_id']) && $companyDetails['invoice_id'] !== null && $companyDetails['invoice_id'] !== false) {
+            // Séparer les noms des factures en un tableau
+            $companyDetails['invoices'] = explode(',', $companyDetails['invoice_id']);
+            unset($companyDetails['invoice_id']);
+        } else {
+            // Si 'invoice_id' n'existe pas, est null ou est false, définir un tableau vide
+            $companyDetails['invoices'] = [];
         }
 
         return $companyDetails;
