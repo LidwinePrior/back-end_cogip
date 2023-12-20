@@ -2,7 +2,8 @@
 # Cogip
 
 Our mission is to create an API relating to an accounting app to cogip company.
-[link api](https://api-cogip-329f9c72c66d.herokuapp.com/)
+
+[Link api](https://api-cogip-329f9c72c66d.herokuapp.com/)
 
 ## Mission
 
