@@ -35,20 +35,44 @@ class Auth extends BaseModel
             
             // Vérification du mot de passe
             if ($password === $pwdUser) 
-            {
-                $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
-    
-                // Envoi du token dans le header de la réponse
-                header('Content-Type: application/json');
-                header('Access-Control-Allow-Origin: *');
-                header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
-                header('Authorization: Bearer ' . $token);
-                http_response_code(200);
-    
-                echo json_encode([
-                    'message' => 'Authentification réussie'
-                ]);
+            {   
+                
+                if ($roleUser === 1) 
+                {
+                    $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
+        
+                    // Envoi du token dans le header de la réponse
+                    header('Content-Type: application/json');
+                    header('Access-Control-Allow-Origin: *');
+                    header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
+                    header('Authorization: Bearer ' . $token);
+                    http_response_code(200);
+        
+                    echo json_encode([
+                        'message' => 'Authentification réussie'
+                    ]);
                 return;
+                } 
+                else if ($roleUser === 2) 
+                {
+                    $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
+        
+                    // Envoi du token dans le header de la réponse
+                    header('Content-Type: application/json');
+                    header('Access-Control-Allow-Origin: localhost:5173');
+                    header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
+                    header('Authorization: Bearer ' . $token);
+                    http_response_code(200);
+        
+                    echo json_encode([
+                        'message' => 'Authentification réussie'
+                    ]);
+                return;
+                }
+                else 
+                {
+                    throw new \Exception("Enregistrez-vous !", 401);
+                }
             } 
             else 
             {
@@ -91,6 +115,18 @@ class Auth extends BaseModel
             return true;          
         } 
         catch (\Throwable $e) 
+        {
+            return false;
+        }
+    }
+
+    public function checkAuthorization($user)
+    {
+        if ($user['role_id'] === 1) 
+        {
+            return true;
+        } 
+        else 
         {
             return false;
         }
