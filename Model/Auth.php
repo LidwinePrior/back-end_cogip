@@ -5,9 +5,8 @@ namespace App\Model;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use App\Model\BaseModel;
-use App\Controller\HomeController;
 use App\Model\User;
-use stdClass;
+use App\Controller\HomeController;
 
 class Auth extends BaseModel
 {
@@ -17,7 +16,7 @@ class Auth extends BaseModel
     {
         $this->secretKey = $secretKey;
     }
-
+    
     public function authenticate($email, $password)
     {
         try
@@ -36,43 +35,21 @@ class Auth extends BaseModel
             // Vérification du mot de passe
             if ($password === $pwdUser) 
             {   
-                
-                if ($roleUser === 1) 
-                {
-                    $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
+                // Génération du token
+                $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
         
-                    // Envoi du token dans le header de la réponse
-                    header('Content-Type: application/json');
-                    header('Access-Control-Allow-Origin: *');
-                    header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
-                    header('Authorization: Bearer ' . $token);
-                    http_response_code(200);
+                // Envoi du token dans le header de la réponse
+                header('Content-Type: application/json');
+                header('Access-Control-Allow-Origin: *');
+                header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
+                header('Authorization: Bearer ' . $token);
+                http_response_code(200);
         
-                    echo json_encode([
-                        'message' => 'Authentification réussie'
-                    ]);
+                echo json_encode([
+                    'message' => 'Authentification réussie'
+                ]);
+
                 return;
-                } 
-                else if ($roleUser === 2) 
-                {
-                    $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
-        
-                    // Envoi du token dans le header de la réponse
-                    header('Content-Type: application/json');
-                    header('Access-Control-Allow-Origin: localhost:5173');
-                    header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
-                    header('Authorization: Bearer ' . $token);
-                    http_response_code(200);
-        
-                    echo json_encode([
-                        'message' => 'Authentification réussie'
-                    ]);
-                return;
-                }
-                else 
-                {
-                    throw new \Exception("Enregistrez-vous !", 401);
-                }
             } 
             else 
             {
@@ -119,17 +96,12 @@ class Auth extends BaseModel
             return false;
         }
     }
-
-    public function checkAuthorization($user)
+    private function getTokenFromHeader()
     {
-        if ($user['role_id'] === 1) 
-        {
-            return true;
-        } 
-        else 
-        {
-            return false;
-        }
+        $header = apache_request_headers();
+        $authorizationHeader = $header['Authorization'] ?? '';
+        return str_replace('Bearer ', '', $authorizationHeader);
     }
 }
+
 
