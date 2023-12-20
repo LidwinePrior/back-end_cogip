@@ -211,7 +211,7 @@ class User extends BaseModel
     {
         // Recherche de l'utilisateur dans la base de données
         $query = $this->connection->prepare(
-            "SELECT email, password FROM users WHERE email = :email"
+            "SELECT email, password, role_id FROM users WHERE email = :email"
         );
 
         $query->bindParam(':email', $email, PDO::PARAM_STR);

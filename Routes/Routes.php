@@ -20,18 +20,73 @@ if (isset($_SERVER['HTTP_ORIGIN']))
     header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
-    // Vérifie le JWT
- $router->before('POST', '/api/(.*)', function ($route) use ($auth) 
- {  
-        // Récupère le JWT de l'en-tête Authorization
-        $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
-        //var_dump($authorizationHeader);
-        
-        $data = explode(' ', $authorizationHeader);
-        $token = $data[1];
-        var_dump($token);        // Vérifie le JWT
-        //$token = $auth->verifyToken($token, $_ENV["SECRET_KEY"]);
-    });
+
+// MIDDLEWARE  /////////////////////////////////////////////////////////////
+$router->before('POST', '/api/(.*)', function ($route) use ($auth) 
+{   
+    // Récupère le token
+    $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
+    $token = str_replace('Bearer ', '', $authorizationHeader);
+
+    // Vérifie le token
+    $auth->verifyToken($token);
+
+    if($auth->verifyToken($token) === true)
+    {
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès autorisé']);
+        return;
+    }
+    else{
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès non autorisé']);
+        return;
+    }
+});
+$router->before('DEL', '/api/(.*)', function ($route) use ($auth) 
+{   
+    // Récupère le token
+    $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
+    $token = str_replace('Bearer ', '', $authorizationHeader);
+
+    // Vérifie le token
+    $auth->verifyToken($token);
+
+    if($auth->verifyToken($token) === true)
+    {
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès autorisé']);
+        return;
+    }
+    else{
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès non autorisé']);
+        return;
+    }
+});
+
+$router->before('PUT', '/api/(.*)', function ($route) use ($auth) 
+{   
+    // Récupère le token
+    $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
+    $token = str_replace('Bearer ', '', $authorizationHeader);
+
+    // Vérifie le token
+    $auth->verifyToken($token);
+
+    if($auth->verifyToken($token) === true)
+    {
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès autorisé']);
+        return;
+    }
+    else{
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès non autorisé']);
+        return;
+    }
+});
+// ROUTES /////////////////////////////////////////////////////////////////////
 
 $router->mount('/api', function () use ($router, $auth) 
 {
@@ -41,13 +96,22 @@ $router->mount('/api', function () use ($router, $auth)
         // Récupération du body de la requête
         $jsonBody = file_get_contents("php://input");
         $data = json_decode($jsonBody, true);
-
+        
         // Récupération des données
         $email = $data['email'];
         $password = $data['password'];
 
+        // Vérification des données
+        if (empty($email) || empty($password)) 
+        {
+            http_response_code(400);
+            echo json_encode(['message' => 'Email et mot de passe requis']);
+            return;
+        }
+
         // Appel de la méthode authenticate
         $auth->authenticate($email, $password);
+
     });
 
     // GET METHOD  //////////////////////////////////////////////////////

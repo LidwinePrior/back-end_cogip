@@ -3,9 +3,11 @@
 namespace App\Model;
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use App\Model\BaseModel;
 use App\Controller\HomeController;
 use App\Model\User;
+use stdClass;
 
 class Auth extends BaseModel
 {
@@ -18,82 +20,80 @@ class Auth extends BaseModel
 
     public function authenticate($email, $password)
     {
-        // Création d'une instance de la classe User
         try
         {
             $userModel = new User();
         
-            // Appel de la méthode getUserByEmail
             $user = $userModel->getUserByEmail($email);
-
+            // Vérification de la validité du JSON
             $jsonUser = json_decode($user, true);
-            
+
+            // Vérification des clés avant d'y accéder
             $pwdUser = $jsonUser['data']['password'];
-       
-        // Vérification du mot de passe
-        if ($password === $pwdUser) 
-        {
-            // Génération du token
-            $token = $this->generateToken($email, $password);
-            // Envoi du token dans la réponse
-            header('Content-Type: application/json');
-            header('Access-Control-Allow-Origin: *');
-            header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
-            http_response_code(200);
-            echo json_encode([
-                'message' => 'Authentification réussie',
-                'token' => $token,
-            ]);
-            return $token;
-        } 
-        else 
-        {
-            throw new \Exception("Email ou mot de passe incorrect", 401);
-        }
+            $roleUser = $jsonUser['data']['role_id'];
+            $emailUser = $jsonUser['data']['email'];
+            
+            // Vérification du mot de passe
+            if ($password === $pwdUser) 
+            {
+                $token = $this->generateToken($emailUser, $pwdUser, $roleUser);
+    
+                // Envoi du token dans le header de la réponse
+                header('Content-Type: application/json');
+                header('Access-Control-Allow-Origin: *');
+                header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
+                header('Authorization: Bearer ' . $token);
+                http_response_code(200);
+    
+                echo json_encode([
+                    'message' => 'Authentification réussie'
+                ]);
+                return;
+            } 
+            else 
+            {
+                throw new \Exception("Email ou mot de passe incorrect", 401);
+            }
         }
         catch (\Throwable $e) 
         {
-            http_response_code($e->getCode());
+            http_response_code(401);
             echo json_encode(['message' => $e->getMessage()]);
         }
     }
-
-    private function generateToken($email, $password)
+    
+    private function generateToken($email, $password, $role)
     {
-        // Génération du token JWT
         $tokenPayload = 
         [
             "iss" => "localhost:5173",
             "aud" => "localhost:5173",
             "iat" => time(),
             "exp" => time() + 3600,
-            "email" => $email,
-            "password" => $password,
-        
+            "data" => 
+            [
+                "email" => $email,
+                "password" => $password,
+                "role_id" => $role
+            ]
         ];
+    
         $token = JWT::encode($tokenPayload, $this->secretKey, 'HS256');
+    
         return $token;
     }
  
-    public function verifyToken($token, $secretKey)
-    { 
-        $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
-        var_dump($authorizationHeader);
-        
-        $data = explode(' ', $authorizationHeader);
-        $token = $data[1];
-        var_dump($token);
-        /*
-        // Vérification du token JWT
+    public function verifyToken($token)
+    {
         try 
         {
-            $decodedToken = JWT::decode($token, $secretKey, ['HS256']);
-            return true;
+            $decoded = JWT::decode($token, new Key($this->secretKey, 'HS256'));
+            return true;          
         } 
         catch (\Throwable $e) 
         {
             return false;
-        }*/
+        }
     }
 }
 
