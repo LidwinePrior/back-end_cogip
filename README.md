@@ -167,7 +167,7 @@ Mathias:
 
     - cors
 
-together:
+Together:
 
     - router
 
