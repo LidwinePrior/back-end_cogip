@@ -1,9 +1,11 @@
 
-# Cogip
+# Cogip API
 
-Our mission is to create an API relating to an accounting app to cogip company.
+## Mission
 
-[Link api](https://api-cogip-329f9c72c66d.herokuapp.com/)
+The COGIP API is developed to serve the accounting needs of the COGIP company. This API provides functionalities related to managing companies, contacts, and invoices.
+
+[API Link](https://api-cogip-329f9c72c66d.herokuapp.com/)
 
 ## Mission
 
@@ -16,167 +18,105 @@ Validation & Sanitization (controllers)
 
 ## Tech Stack
 
-**Server:** 
+- **Server:**
+  - PHP
+  - POO (Object-Oriented Programming)
+  - MVC (Model-View-Controller)
+  - Namespace
+  - [bramus/router](https://github.com/bramus/router) (A lightweight and simple object-oriented PHP Router)
+  - [filp/whoops](https://github.com/filp/whoops) (PHP errors)
+  - [dragonbe/vies](https://github.com/dragonbe/vies) (TVA validation)
+  - [firebase/php-jwt](https://github.com/firebase/php-jwt) (Authentication)
 
-    - PHP
-
-    - POO
-
-    - MVC
-
-    - Namespace
-
-    - bramus router (A lightweight and simple - object oriented PHP Router)
-
-    - filp/whoops: (PHP errors)
-
-    - dragonbe/vies (tva validation)
-
-    - firebase/php-jwt (authentification)
 
 
 
 ## API Reference
 
-#### GET all companies
+### Companies
 
-```http
-  GET /api/companies
-```
+- **GET all companies**
+  - `GET /api/companies`
 
-#### GET last five companies
+- **GET last five companies**
+  - `GET /api/fivecompanies`
 
-```http
-   GET /api/fivecompanies
-```
+- **GET company**
+  - `GET /api/companies/${id}`
 
-#### GET company
+- **POST company**
+  - `POST /api/add-company`
 
-```http
-  GET /api/companies/${id}
-```
+- **DELETE company**
+  - `DELETE /api/del-company`
 
-#### POST company
+- **PUT company**
+  - `PUT /api/update-company`
 
-```http
-  POST /api/add-company
-```
+### Contacts
 
-#### DELETE company
+- **GET all contacts**
+  - `GET /api/contacts`
 
-```http
-  DELETE /api/del-company
-```
+- **GET last five contacts**
+  - `GET /api/fivecontacts`
 
-#### PUT company
+- **GET contact**
+  - `GET /api/contcats/${id}`
 
-```http
-  PUT /api/update-company
-```
+- **POST contact**
+  - `POST /api/add-contact`
 
+- **DELETE contact**
+  - `DELETE /api/del-contact`
 
+- **PUT contact**
+  - `PUT /api/update-contact`
 
-#### GET all contacts
+### Invoices
 
-```http
-  GET /api/contacts
-```
+- **GET all invoices**
+  - `GET /api/invoices`
 
-#### GET last five contacts
+- **GET last five invoices**
+  - `GET /api/fiveinvoices`
 
-```http
-   GET /api/fivecontacts
-```
+- **GET invoice**
+  - `GET /api/invoices/${id}`
 
-#### GET contact
+- **POST invoice**
+  - `POST /api/add-invoice`
 
-```http
-  GET /api/contcats/${id}
-```
+- **DELETE invoice**
+  - `DELETE /api/del-invoice`
 
-#### POST contact
-
-```http
-  POST /api/add-contact
-```
-
-#### DELETE contact
-
-```http
-  DELETE /api/del-contact
-```
-
-#### PUT contact
-
-```http
-  PUT /api/update-contact
-```
+- **PUT invoice**
+  - `PUT /api/update-invoice`
 
 
 
-#### GET all invoices
+## Roles
 
-```http
-  GET /api/invoices
-```
+### Lidwine
 
-#### GET last five invoices
+- Methods: GET, POST
+- Sanitization & Validation
+- Put the database online
 
-```http
-   GET /api/fiveinvoices
-```
+### Mathias
 
-#### GET invoice
+- Method: DELETE
+- Authentication
+- CORS
 
-```http
-  GET /api/invoices/${id}
-```
+### Together
 
-#### POST invoice
-
-```http
-  POST /api/add-invoice
-```
-
-#### DELETE invoice
-
-```http
-  DELETE /api/del-invoice
-```
-
-#### PUT invoice
-
-```http
-  PUT /api/update-invoice
-```
+- Router
+- Method: PUT
+- Deployment on Heroku
 
 
-## Our roles
 
-Lidwine:
-
-    - method: get, post
-
-    - sanitize & validation
-
-    - put db online
-
-
-Mathias:
-
-    - method: delete
-
-    - authentification
-
-    - cors
-
-Together:
-
-    - router
-
-    - method: put
-
-    - deployment on heroku
 ## Authors
 
 [Lidwine](https://www.github.com/LidwinePrior) & [Mathias](https://github.com/PAZTEK1007)
