@@ -18,6 +18,7 @@ class Companies extends BaseModel
         JOIN companies ON types.id = companies.type_id
         ORDER BY companies.name ASC"
         );
+
         $query->execute();
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 

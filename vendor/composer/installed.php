@@ -13,7 +13,7 @@
         'becode/base' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '09a18f44894038f0a5a16cdbb8cfd0ae8e0bcf5c',
+            'reference' => '41eca106ce99f82eb02287516954ebb81dc7a5df',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

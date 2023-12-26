@@ -8,6 +8,7 @@ use App\Model\Auth;
 
 
 $router = new Router();
+$auth = new Auth($_ENV['SECRET_KEY']);
 
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     // Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
@@ -18,16 +19,6 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
-
-// Middleware pour vérifier le token dans les requêtes GET
-$router->before('GET', '/api/(.*)', function () {
-    $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-});
-$router->before('POST', '/api/(.*)', function () {
-    $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-});
-
-
 // Code pour gérer les requêtes OPTIONS
 $router->options('/api/(.*)', function () {
     // Définir les en-têtes CORS pour les requêtes OPTIONS
@@ -41,15 +32,73 @@ $router->options('/api/(.*)', function () {
     exit();
 });
 
-$router->mount('/api', function () use ($router) {
+// MIDDLEWARE  /////////////////////////////////////////////////////////////
+$authMiddleware = function () use ($router, $auth) 
+{
+    // Récupère le token
+    $token = $auth->getTokenFromHeader();
+
+    // Vérifie le token
+    $auth->verifyToken($token);
+    $auth->getAdmin($token);
+
+    if ($auth->verifyToken($token) === true && $auth->getAdmin($token) === true) 
+    {
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès autorisé']);
+        return;
+    }
+    else
+    {
+        http_response_code(401);
+        echo json_encode(['message' => 'Accès non autorisé']);
+        return;
+    }
+};
+
+// ROUTES PROTECTED BY ROLE  //////////////////////////////////////////////////
+
+// DELETE METHOD  ////////////////////////////////////////////////////////////////
+$router->before('DELETE', '/api/del-user', $authMiddleware);
+$router->before('DELETE', '/api/del-company', $authMiddleware);
+$router->before('DELETE', '/api/del-invoice', $authMiddleware);
+$router->before('DELETE', '/api/del-contact', $authMiddleware);
+// PUT METHOD  ////////////////////////////////////////////////////////////////
+$router->before('PUT', '/api/update-company', $authMiddleware);
+$router->before('PUT', '/api/update-invoice', $authMiddleware);
+$router->before('PUT', '/api/update-contact', $authMiddleware);
+// POST METHOD  ////////////////////////////////////////////////////////////////
+$router->before('POST', '/api/add-company', $authMiddleware);
+$router->before('POST', '/api/add-contact', $authMiddleware);
+$router->before('POST', '/api/add-invoice', $authMiddleware);
+
+// ROUTES /////////////////////////////////////////////////////////////////////
+
+$router->mount('/api', function () use ($router, $auth) {
     // LOGIN /////////////////////////////////////////////////////////////////
-    // $router->get('/login', function () use ($auth) {
+    $router->post('/login', function () use ($auth) 
+    {
+        // Récupération du body de la requête
+        $jsonBody = file_get_contents('php://input');
+        $data = json_decode($jsonBody, true);
 
-    //     $email = $_GET['email'] ?? 'john.doe@example.com';
-    //     $password = $_GET['password'] ?? 'test123';
+        // Récupération des données
+        $email = $data['email'];
+        $password = $data['password'];
 
-    //     $auth->authenticate($email, $password);
-    // });
+        // Vérification des données
+        if (empty($email) || empty($password)) 
+        {
+            http_response_code(400);
+            echo json_encode(['message' => 'Email et mot de passe requis']);
+            return;
+        }
+
+        // Appel de la méthode authenticate
+        $auth->authenticate($email, $password);
+
+    });
+
     // GET METHOD  //////////////////////////////////////////////////////
 
     // USERS /////////////////////////////////////////////////////////////////
