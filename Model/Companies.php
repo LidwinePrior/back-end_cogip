@@ -22,9 +22,6 @@ class Companies extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
 
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
         if (empty($companiesData)) {
@@ -66,11 +63,6 @@ class Companies extends BaseModel
         $query->execute();
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
-
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         // Définir les en-têtes pour indiquer que la réponse est au format JSON
         if (empty($companiesData)) {
             $statusCode = 500;
@@ -105,6 +97,7 @@ class Companies extends BaseModel
 
         // Vérifier si la compagnie a été trouvée
         if (!$companyDetails) {
+            http_response_code(404);
             $message = 'Company not found';
             $statusCode = 404;
             $status = 'error';
@@ -134,12 +127,35 @@ class Companies extends BaseModel
     private function getCompanyById($companyId)
     {
         $query = $this->connection->prepare(
-            "SELECT types.name AS type_name, companies.id, companies.name AS company_name, companies.country, companies.tva, companies.created_at AS company_creation, GROUP_CONCAT(contacts.name) AS contact_names
-        FROM types 
+            "SELECT
+            types.name AS type_name,
+            companies.id,
+            companies.name AS company_name,
+            companies.country,
+            companies.tva,
+            companies.created_at AS company_creation,
+            GROUP_CONCAT(DISTINCT contacts.id) AS contact_id,
+            GROUP_CONCAT(DISTINCT last_invoices.invoice_id) AS invoice_id
+        FROM types
         JOIN companies ON types.id = companies.type_id
-        JOIN contacts ON companies.id = contacts.company_id
+        LEFT JOIN contacts ON companies.id = contacts.company_id
+        LEFT JOIN (
+            SELECT DISTINCT id AS invoice_id, id_company, created_at
+            FROM invoices
+            WHERE id_company = :id
+            ORDER BY created_at DESC
+            LIMIT 5
+        ) AS last_invoices ON companies.id = last_invoices.id_company
         WHERE companies.id = :id
-        GROUP BY companies.id"
+        GROUP BY
+            types.name,
+            companies.id,
+            companies.name,
+            companies.country,
+            companies.tva,
+            companies.created_at
+        ORDER BY MAX(last_invoices.created_at) DESC;
+        "
         );
         $query->bindParam(':id', $companyId, PDO::PARAM_INT);
         $query->execute();
@@ -147,12 +163,35 @@ class Companies extends BaseModel
         // Utiliser fetch au lieu de fetchAll, car GROUP_CONCAT génère une seule ligne
         $companyDetails = $query->fetch(PDO::FETCH_ASSOC);
 
-        // Séparer les noms des contacts en un tableau
-        $companyDetails['contacts'] = explode(',', $companyDetails['contact_names']);
-        unset($companyDetails['contact_names']);
+        // Vérifier si $companyDetails est null ou fals
+        if (!$companyDetails) {
+            return null;
+        }
+
+        // Vérifier si 'contact_id' existe et n'est pas null ou false
+        if (isset($companyDetails['contact_id']) && $companyDetails['contact_id'] !== null && $companyDetails['contact_id'] !== false) {
+            // Séparer les noms des contacts en un tableau
+            $companyDetails['contacts'] = explode(',', $companyDetails['contact_id']);
+            unset($companyDetails['contact_id']);
+        } else {
+            // Si 'contact_id' n'existe pas, est null ou est false, définir un tableau vide
+            $companyDetails['contacts'] = [];
+        }
+
+        // Vérifier si 'invoice_id' existe et n'est pas null ou false
+        if (isset($companyDetails['invoice_id']) && $companyDetails['invoice_id'] !== null && $companyDetails['invoice_id'] !== false) {
+            // Séparer les noms des factures en un tableau
+            $companyDetails['invoices'] = explode(',', $companyDetails['invoice_id']);
+            unset($companyDetails['invoice_id']);
+        } else {
+            // Si 'invoice_id' n'existe pas, est null ou est false, définir un tableau vide
+            $companyDetails['invoices'] = [];
+        }
 
         return $companyDetails;
     }
+
+
 
 
     // POST NEW COMPANY  ////////////////////////////////////////////////////////////////
@@ -184,6 +223,9 @@ class Companies extends BaseModel
         //retourner l'ID de l'entreprise si une correspondance sinon retourner null
         return $result ? $result['id'] : null;
     }
+
+
+
     // DELETE COMPANY BY ID ////////////////////////////////////////////////////////////////////////////////////////////
     public function delete($id)
     {
@@ -192,28 +234,26 @@ class Companies extends BaseModel
         );
 
         $query->bindParam(':id', $id, PDO::PARAM_INT);
-        $query->execute();
-        $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
+        $success = $query->execute();
 
-        // Convertir en JSON
-        $jsonData = json_encode($companiesid, JSON_PRETTY_PRINT);
 
-        if (empty($companiesid)) {
-            $statusCode = 500;
-            $status = 'error';
-        } else {
+        // Vérifier si la suppression a réussi
+        if ($success) {
             $statusCode = 200;
             $status = 'success';
+            $message = 'Company deleted successfully.';
+        } else {
+            $statusCode = 500;
+            $status = 'error';
+            $message = 'Failed to delete company.';
         }
 
-        $response =
-            [
-                'message' => 'List of companies by id',
-                'content-type' => 'application/json',
-                'code' => $statusCode,
-                'status' => $status,
-                'data' => $companiesid,
-            ];
+        $response = [
+            'message' => $message,
+            'content-type' => 'application/json',
+            'code' => $statusCode,
+            'status' => $status,
+        ];
 
         $jsonData = json_encode($response, JSON_PRETTY_PRINT);
 
@@ -222,6 +262,7 @@ class Companies extends BaseModel
 
         echo $jsonData;
     }
+    // UPDATE COMPANY ///////////////////////////////////////////////////
     public function update($id)
     {
         try {
@@ -230,25 +271,62 @@ class Companies extends BaseModel
             $data = json_decode($body);
 
             // Vérifier si la company existe déjà
-            $companyId = $this->getCompanyIdByName($data->name);
+            $existingCompanyId = $this->getCompanyById($id);
 
-            // Si la company existe déjà, retourner un code d'erreur
-            if ($companyId) {
+            // Si la company n'existe pas, retourner un code d'erreur
+            if (!$existingCompanyId) {
+                http_response_code(404);
+                echo json_encode(['message' => 'Company not found']);
+                exit();
+            }
+
+            // Vérifier si une autre company avec le même nom existe déjà
+            $otherCompanyId = $this->getCompanyIdByName($data->name);
+
+            // Si une autre company avec le même nom existe et ce n'est pas la même que celle que vous mettez à jour, retourner un code d'erreur
+            if ($otherCompanyId && $otherCompanyId !== $id) {
                 http_response_code(409);
-                echo json_encode(['message' => 'Company already exists']);
+                echo json_encode(['message' => 'Company with the same name already exists']);
                 exit();
             }
 
             // Mettre à jour la company
-            $query = $this->connection->prepare("UPDATE companies SET name = :name, type_id = :type_id, country = :country, tva = :tva, updated_at = :updated_at WHERE id = :id");
+            $query = $this->connection->prepare(
+                "UPDATE companies SET name = :name, type_id = :type_id, country = :country, tva = :tva WHERE id = :id"
+            );
 
             $query->bindParam(':name', $data->name);
             $query->bindParam(':type_id', $data->type_id);
             $query->bindParam(':country', $data->country);
             $query->bindParam(':tva', $data->tva);
-            $query->bindParam(':updated_at', $data->updated_at);
             $query->bindParam(':id', $id, PDO::PARAM_INT);
-            return $query->execute();
+
+            $success = $query->execute();
+
+            // Vérifier si la mise à jour a réussi
+            if ($success) {
+                $statusCode = 200;
+                $status = 'success';
+                $message = 'Company updated successfully.';
+            } else {
+                $statusCode = 500;
+                $status = 'error';
+                $message = 'Failed to update company.';
+            }
+
+            $response = [
+                'message' => $message,
+                'content-type' => 'application/json',
+                'code' => $statusCode,
+                'status' => $status,
+            ];
+
+            $jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+            header('Content-Type: application/json');
+            http_response_code($statusCode);
+
+            echo $jsonData;
         } catch (Exception $e) {
             throw $e;
         }

@@ -7,35 +7,49 @@ use App\Controllers\HomeController;
 use App\Model\Auth;
 
 
-$auth = new Auth($_ENV["SECRET_KEY"]);
 $router = new Router();
 
-if (isset($_SERVER['HTTP_ORIGIN'])) 
-{
+if (isset($_SERVER['HTTP_ORIGIN'])) {
     // Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
     // you want to allow, and if so:
     header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
     header('Access-Control-Allow-Credentials: true');
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
 
 // Middleware pour vérifier le token dans les requêtes GET
-$router->before('GET', '/api/(.*)', function ($route) use ($auth) {
-    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-
+$router->before('GET', '/api/(.*)', function () {
+    $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+});
+$router->before('POST', '/api/(.*)', function () {
+    $_SERVER['HTTP_AUTHORIZATION'] ?? null;
 });
 
-$router->mount('/api', function () use ($router, $auth) 
-{
+
+// Code pour gérer les requêtes OPTIONS
+$router->options('/api/(.*)', function () {
+    // Définir les en-têtes CORS pour les requêtes OPTIONS
+    // Ces en-têtes doivent être définis pour permettre les requêtes CORS
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
+    header('Access-Control-Max-Age: 86400');    // cache for 1 day
+
+    // Répondre avec un statut OK (200) pour les requêtes OPTIONS
+    http_response_code(200);
+    exit();
+});
+
+$router->mount('/api', function () use ($router) {
     // LOGIN /////////////////////////////////////////////////////////////////
-    $router->get('/login', function () use ($auth) 
-    {
-        
-        $email = $_GET['email'] ?? 'john.doe@example.com';
-        $password = $_GET['password'] ?? 'test123';
-        
-        $auth->authenticate($email, $password);
-    });
+    // $router->get('/login', function () use ($auth) {
+
+    //     $email = $_GET['email'] ?? 'john.doe@example.com';
+    //     $password = $_GET['password'] ?? 'test123';
+
+    //     $auth->authenticate($email, $password);
+    // });
     // GET METHOD  //////////////////////////////////////////////////////
 
     // USERS /////////////////////////////////////////////////////////////////
@@ -102,7 +116,7 @@ $router->mount('/api', function () use ($router, $auth)
     // USER ////////////////////////////////////////////
     $router->post('/register', function () {
         (new HomeController())->createNewUser();
-     });
+    });
     // DELETE METHOD  ////////////////////////////////////////////////////////////////
 
     // USER /////////////////////////////////////////////////////////////////////
@@ -135,7 +149,6 @@ $router->mount('/api', function () use ($router, $auth)
     $router->put('/update-contact/(\d+)', function ($id) {
         (new HomeController())->updateContact($id);
     });
-
 });
 
 $router->run();

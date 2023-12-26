@@ -22,10 +22,6 @@ class Contacts extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -67,8 +63,6 @@ class Contacts extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -99,7 +93,6 @@ class Contacts extends BaseModel
     {
         $contactDetails = $this->getContactById($contactId);
 
-        $jsonData = json_encode($contactDetails, JSON_PRETTY_PRINT);
         // Vérifier si la compagnie a été trouvée
         if (!$contactDetails) {
             $message = 'Contact not found';
@@ -138,7 +131,7 @@ class Contacts extends BaseModel
         );
         $query->bindParam(':id', $contactId, PDO::PARAM_INT);
         $query->execute();
-        $contactDetails = $query->fetchAll(PDO::FETCH_ASSOC);
+        $contactDetails = $query->fetch(PDO::FETCH_ASSOC);
 
         return $contactDetails;
     }
@@ -174,6 +167,9 @@ class Contacts extends BaseModel
         //retourner l'ID du contact si une correspondance sinon retourner null
         return $result ? $result['id'] : null;
     }
+
+
+
     // DELETE CONTACT BY ID //////////////////////////////////////////////////////////////////////////////////////////////
 
     public function delete($id)
@@ -183,27 +179,25 @@ class Contacts extends BaseModel
         );
 
         $query->bindParam(':id', $id, PDO::PARAM_INT);
-        $query->execute();
-        $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
+        $success = $query->execute();
 
-        $companiesData = json_encode($companiesid, JSON_PRETTY_PRINT);
-
-        if (empty($companiesid)) {
-            $statusCode = 500;
-            $status = 'error';
-        } else {
+        // Vérifier si la suppression a réussi
+        if ($success) {
             $statusCode = 200;
             $status = 'success';
+            $message = 'Contact deleted successfully.';
+        } else {
+            $statusCode = 500;
+            $status = 'error';
+            $message = 'Failed to delete contact.';
         }
 
-        $response =
-            [
-                'message' => 'List of contacts by id',
-                'content-type' => 'application/json',
-                'code' => $statusCode,
-                'status' => $status,
-                'data' => $companiesid,
-            ];
+        $response = [
+            'message' => $message,
+            'content-type' => 'application/json',
+            'code' => $statusCode,
+            'status' => $status,
+        ];
 
         $jsonData = json_encode($response, JSON_PRETTY_PRINT);
 
@@ -212,36 +206,63 @@ class Contacts extends BaseModel
 
         echo $jsonData;
     }
+
+
+
+    //UPDATE CONTACT //////////////////////////////////////
     public function update($id)
     {
         try {
             // Récupérer le corps de la requête JSON
             $body = file_get_contents('php://input');
-            $data = json_decode($body);
-
+            $data = json_decode($body, true);
+            // var_dump($data);
             // Vérifier si le contact existe déjà
-            $contactId = $this->getContactIdByName($data->name);
+            $existingContact = $this->getContactById($id);
 
-            // Si le contact existe déjà, on retourne une erreur
-            if ($contactId) {
-                http_response_code(409);
-                return json_encode(['message' => 'Contact already exists']);
+            // Si le contact n'existe pas, retourner un code d'erreur
+            if (!$existingContact) {
+                http_response_code(404);
+                echo json_encode(['message' => 'Contact not found']);
+                exit();
             }
 
-            // Mettre à jour le type
+            // Mettre à jour le contact
             $query = $this->connection->prepare(
-                "UPDATE contacts SET name = :name , company_id = :company_id, email = :email, phone = :phone, created_at = :created_at, updated_at = :updated_at WHERE id = :id"
+                "UPDATE contacts SET name = :name , company_id = :company_id, email = :email, phone = :phone WHERE id = :id"
             );
 
-            $query->bindParam(':name', $data->name);
-            $query->bindParam(':company_id', $data->company_id);
-            $query->bindParam(':email', $data->email);
-            $query->bindParam(':phone', $data->phone);
-            $query->bindParam(':created_at', $data->created_at);
-            $query->bindParam(':updated_at', $data->updated_at);
+            $query->bindParam(':name', $data['name']);
+            $query->bindParam(':company_id', $data['company_id']);
+            $query->bindParam(':email', $data['email']);
+            $query->bindParam(':phone', $data['phone']);
             $query->bindParam(':id', $id, PDO::PARAM_INT);
 
-            return $query->execute();
+            $success = $query->execute();
+
+            // Vérifier si la mise à jour a réussi
+            if ($success) {
+                $statusCode = 200;
+                $status = 'success';
+                $message = 'Contact updated successfully.';
+            } else {
+                $statusCode = 500;
+                $status = 'error';
+                $message = 'Failed to update contact.';
+            }
+
+            $response = [
+                'message' => $message,
+                'content-type' => 'application/json',
+                'code' => $statusCode,
+                'status' => $status,
+            ];
+            $jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+            header('Content-Type: application/json');
+            http_response_code($statusCode);
+
+            echo $jsonData;
         } catch (Exception $e) {
             throw $e;
         }

@@ -14,15 +14,16 @@ class Validator
 {
     public static function validateAndSanitize($value, $minLength = null, $maxLength = null, $type = null)
     {
-        //utiliser condition ternaire pour vérifier si la valeur est définie et non vide
-        $sanitizedValue = isset($value) && !empty($value) ? htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8')  : null;
-
-        //si la valeur est vide ou null alors ->message d'erreur
+        var_dump("Value before sanitization: " . $value);
+        // utiliser condition ternaire pour vérifier si la valeur est définie et non vide
+        $sanitizedValue = isset($value) && !empty($value) ? htmlspecialchars(strip_tags(trim($value)), ENT_QUOTES, 'UTF-8') : null;
+        var_dump("Value after sanitization: " . $sanitizedValue);
+        // si la valeur est vide ou null alors ->message d'erreur
         if ($sanitizedValue === null) {
             throw new InvalidArgumentException("La valeur ne peut pas être vide.");
         }
 
-        //valider en fonction du type
+        // valider en fonction du type
         if ($type !== null) {
             switch ($type) {
                 case 'name':
@@ -40,8 +41,6 @@ class Validator
                 case 'phone':
                     self::validatePhone($sanitizedValue);
                     break;
-                case 'password':
-                    self::validatePassword($sanitizedValue);
                 default:
                     break;
             }
@@ -49,10 +48,10 @@ class Validator
         return $sanitizedValue;
     }
 
-    //valider les names
+    // valider les names
     private static function validateName($value, $minLength = 3, $maxLength = 50)
     {
-        //valider longueur
+        // valider longueur
         if (strlen($value) < $minLength || strlen($value) > $maxLength) {
             throw new InvalidArgumentException("La longueur du nom doit être entre $minLength et $maxLength caractères.");
         }
@@ -61,15 +60,14 @@ class Validator
     //valider email
     private static function validateEmail($value)
     {
-        // Utiliser une expression régulière pour valider l'e-mail
-        if (!filter_var($value, FILTER_VALIDATE_EMAIL) || !preg_match('/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/', $value)) {
+        // Utiliser la fonction filter_var pour valider l'e-mail
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("L'adresse e-mail n'est pas valide.");
         }
     }
 
-
-    //valider tva
-    private static function validateTva($value)
+    // valider tva
+    public static function validateTva($value)
     {
         // Extraire le pays et le numéro de TVA de la valeur
         $countryCode = strtoupper(substr($value, 0, 2));
@@ -94,7 +92,6 @@ class Validator
             throw new InvalidArgumentException("Erreur de validation du numero de TVA : " . $e->getMessage());
         }
     }
-
     //valider les dates
     private static function validateDate($value)
     {
@@ -113,15 +110,5 @@ class Validator
         if (!preg_match('/^[0-9\+\-\(\)\/\s]*$/', $value)) {
             throw new InvalidArgumentException("Le numéro de téléphone n'est pas valide.");
         }
-    }
-
-    //valider password et le hacher
-    private static function validatePassword($value, $minLength = 9)
-    {
-
-        if (strlen($value) < $minLength) {
-            throw new InvalidArgumentException("La longueur du nom doit avoir au moins $minLength caractères.");
-        }
-        $hash = password_hash($value, PASSWORD_DEFAULT);
     }
 }
