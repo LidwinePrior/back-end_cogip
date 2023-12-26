@@ -8,6 +8,7 @@ use App\Model\Auth;
 
 
 $router = new Router();
+$auth = new Auth($_ENV['SECRET_KEY']);
 
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     // Decide if the origin in $_SERVER['HTTP_ORIGIN'] is one
@@ -18,6 +19,18 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
     header('Access-Control-Max-Age: 86400');    // cache for 1 day
 }
+// Code pour gérer les requêtes OPTIONS
+$router->options('/api/(.*)', function () {
+    // Définir les en-têtes CORS pour les requêtes OPTIONS
+    // Ces en-têtes doivent être définis pour permettre les requêtes CORS
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
+    header('Access-Control-Max-Age: 86400');    // cache for 1 day
+
+    // Répondre avec un statut OK (200) pour les requêtes OPTIONS
+    http_response_code(200);
+    exit();
+});
 
 // MIDDLEWARE  /////////////////////////////////////////////////////////////
 $authMiddleware = function () use ($router, $auth) 
@@ -59,21 +72,9 @@ $router->before('POST', '/api/add-company', $authMiddleware);
 $router->before('POST', '/api/add-contact', $authMiddleware);
 $router->before('POST', '/api/add-invoice', $authMiddleware);
 
-// Code pour gérer les requêtes OPTIONS
-$router->options('/api/(.*)', function () {
-    // Définir les en-têtes CORS pour les requêtes OPTIONS
-    // Ces en-têtes doivent être définis pour permettre les requêtes CORS
-    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Auth-Token, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers');
-    header('Access-Control-Max-Age: 86400');    // cache for 1 day
-
-    // Répondre avec un statut OK (200) pour les requêtes OPTIONS
-    http_response_code(200);
-    exit();
-});
 // ROUTES /////////////////////////////////////////////////////////////////////
 
-$router->mount('/api', function () use ($router) {
+$router->mount('/api', function () use ($router, $auth) {
     // LOGIN /////////////////////////////////////////////////////////////////
     $router->post('/login', function () use ($auth) 
     {
