@@ -22,68 +22,45 @@ if (isset($_SERVER['HTTP_ORIGIN']))
 }
 
 // MIDDLEWARE  /////////////////////////////////////////////////////////////
-$router->before('POST', '/api/(.*)', function ($route) use ($auth) 
-{   
-    // Récupère le token
-    $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
-    $token = str_replace('Bearer ', '', $authorizationHeader);
-
-    // Vérifie le token
-    $auth->verifyToken($token);
-
-    if($auth->verifyToken($token) === true)
-    {
-        http_response_code(401);
-        echo json_encode(['message' => 'Accès autorisé']);
-        return;
-    }
-    else{
-        http_response_code(401);
-        echo json_encode(['message' => 'Accès non autorisé']);
-        return;
-    }
-});
-$router->before('DEL', '/api/(.*)', function ($route) use ($auth) 
-{   
-    // Récupère le token
-    $authorizationHeader = apache_request_headers()['Authorization'] ?? '';
-    $token = str_replace('Bearer ', '', $authorizationHeader);
-
-    // Vérifie le token
-    $auth->verifyToken($token);
-
-    if($auth->verifyToken($token) === true)
-    {
-        http_response_code(401);
-        echo json_encode(['message' => 'Accès autorisé']);
-        return;
-    }
-    else{
-        http_response_code(401);
-        echo json_encode(['message' => 'Accès non autorisé']);
-        return;
-    }
-});
-
-$router->before('PUT', '/api/(.*)', function ($route) use ($auth) 
-{   
+$authMiddleware = function () use ($router, $auth) 
+{
     // Récupère le token
     $token = $auth->getTokenFromHeader();
+
     // Vérifie le token
     $auth->verifyToken($token);
+    $auth->getAdmin($token);
 
-    if($auth->verifyToken($token) === true)
+    if ($auth->verifyToken($token) === true && $auth->getAdmin($token) === true) 
     {
         http_response_code(401);
         echo json_encode(['message' => 'Accès autorisé']);
         return;
     }
-    else{
+    else
+    {
         http_response_code(401);
         echo json_encode(['message' => 'Accès non autorisé']);
         return;
     }
-});
+};
+
+// ROUTES PROTECTED BY ROLE  //////////////////////////////////////////////////
+
+// DELETE METHOD  ////////////////////////////////////////////////////////////////
+$router->before('DELETE', '/api/del-user', $authMiddleware);
+$router->before('DELETE', '/api/del-company', $authMiddleware);
+$router->before('DELETE', '/api/del-invoice', $authMiddleware);
+$router->before('DELETE', '/api/del-contact', $authMiddleware);
+// PUT METHOD  ////////////////////////////////////////////////////////////////
+$router->before('PUT', '/api/update-company', $authMiddleware);
+$router->before('PUT', '/api/update-invoice', $authMiddleware);
+$router->before('PUT', '/api/update-contact', $authMiddleware);
+// POST METHOD  ////////////////////////////////////////////////////////////////
+$router->before('POST', '/api/add-company', $authMiddleware);
+$router->before('POST', '/api/add-contact', $authMiddleware);
+$router->before('POST', '/api/add-invoice', $authMiddleware);
+
 // ROUTES /////////////////////////////////////////////////////////////////////
 
 $router->mount('/api', function () use ($router, $auth) 
@@ -92,7 +69,7 @@ $router->mount('/api', function () use ($router, $auth)
     $router->post('/login', function () use ($auth) 
     {
         // Récupération du body de la requête
-        $jsonBody = file_get_contents("php://input");
+        $jsonBody = file_get_contents('php://input');
         $data = json_decode($jsonBody, true);
 
         // Récupération des données
@@ -161,17 +138,17 @@ $router->mount('/api', function () use ($router, $auth)
     // POST METHOD  ////////////////////////////////////////////////////////////////
 
     // COMPANY  /////////////////////////////////
-    $router->post('/add-company', [$auth, '__invoke'], function () {
+    $router->post('/add-company', function () {
         (new HomeController())->createNewCompany();
     });
 
     // CONTACT /////////////////////////////////////////
-    $router->post('/add-contact', [$auth, '__invoke'], function () {
+    $router->post('/add-contact', function () {
         (new HomeController())->createNewContact();
     });
 
     // INVOICE ////////////////////////////////////////////
-    $router->post('/add-invoice', [$auth, '__invoke'], function () {
+    $router->post('/add-invoice', function () {
         (new HomeController())->createNewInvoice();
     });
 
@@ -182,33 +159,33 @@ $router->mount('/api', function () use ($router, $auth)
     // DELETE METHOD  ////////////////////////////////////////////////////////////////
 
     // USER /////////////////////////////////////////////////////////////////////
-    $router->delete('/del-user/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->delete('/del-user/(\d+)', function ($id) {
         (new HomeController())->delUser($id);
     });
     // COMPANY /////////////////////////////////////////////////////////////////
-    $router->delete('/del-company/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->delete('/del-company/(\d+)', function ($id) {
         (new HomeController())->delCompany($id);
     });
     // INVOICE /////////////////////////////////////////////////////////////////
-    $router->delete('/del-invoice/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->delete('/del-invoice/(\d+)', function ($id) {
         (new HomeController())->delInvoice($id);
     });
     // CONTACT /////////////////////////////////////////////////////////////////
-    $router->delete('/del-contact/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->delete('/del-contact/(\d+)', function ($id) {
         (new HomeController())->delContact($id);
     });
 
     // PUT METHOD  ////////////////////////////////////////////////////////////////
     // COMPANY /////////////////////////////////////////////////////////////////
-    $router->put('/update-company/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->put('/update-company/(\d+)', function ($id) {
         (new HomeController())->updateCompany($id);
     });
     // INVOICE /////////////////////////////////////////////////////////////////
-    $router->put('/update-invoice/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->put('/update-invoice/(\d+)', function ($id) {
         (new HomeController())->updateInvoice($id);
     });
     // CONTACT /////////////////////////////////////////////////////////////////
-    $router->put('/update-contact/(\d+)', [$auth, '__invoke'], function ($id) {
+    $router->put('/update-contact/(\d+)', function ($id) {
         (new HomeController())->updateContact($id);
     });
 

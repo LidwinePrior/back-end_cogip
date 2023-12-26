@@ -16,7 +16,7 @@ class Auth extends BaseModel
     {
         $this->secretKey = $secretKey;
     }
-    
+
     public function authenticate($email, $password)
     {
         try
@@ -40,9 +40,9 @@ class Auth extends BaseModel
         
                 // Envoi du token dans le header de la réponse
                 header('Content-Type: application/json');
+                header('Authorization: Bearer ' . $token);
                 header('Access-Control-Allow-Origin: *');
                 header('Access-Control-Allow-Headers: Origins, X-Requested-With, Content-type, Accept');
-                header('Authorization: Bearer ' . $token);
                 http_response_code(200);
         
                 echo json_encode([
@@ -101,6 +101,19 @@ class Auth extends BaseModel
         $header = apache_request_headers();
         $authorizationHeader = $header['Authorization'] ?? '';
         return str_replace('Bearer ', '', $authorizationHeader);
+    }
+    public function getAdmin($token)
+    {
+        $decoded = JWT::decode($token, new Key($this->secretKey, 'HS256'));
+        $role = $decoded->data->role_id;
+        if($role === 1)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
 
