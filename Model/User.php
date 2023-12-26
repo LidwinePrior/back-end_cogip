@@ -27,10 +27,6 @@ class User extends BaseModel
         $query->execute();
         $usersData = $query->fetchAll(PDO::FETCH_ASSOC);
 
-        // Convertir en JSON
-        // JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-
-        $jsonData = json_encode($usersData, JSON_PRETTY_PRINT);
 
         if (empty($usersData)) {
             $statusCode = 500;
@@ -75,9 +71,6 @@ class User extends BaseModel
         $query->execute();
         $usersData = $query->fetchAll(PDO::FETCH_ASSOC);
 
-        // Convertir en JSON
-        // JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($usersData, JSON_PRETTY_PRINT);
 
         if (empty($usersData)) {
             $statusCode = 500;
@@ -120,8 +113,6 @@ class User extends BaseModel
         $query->execute();
         $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
 
-        // Convertir en JSON
-        $jsonData = json_encode($companiesid, JSON_PRETTY_PRINT);
 
         if (empty($companiesid)) {
             $statusCode = 500;
@@ -160,8 +151,6 @@ class User extends BaseModel
         $query->execute();
         $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
 
-        // Convertir en JSON
-        $jsonData = json_encode($companiesid, JSON_PRETTY_PRINT);
 
         if (empty($companiesid)) {
             $statusCode = 500;

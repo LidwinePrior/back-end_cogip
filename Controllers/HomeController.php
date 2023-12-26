@@ -52,8 +52,7 @@ class HomeController extends Controller
     // Create USER   ////////////////////////////////////////////////////////
     public function createNewUser()
     {
-        try
-        {
+        try {
             // Récupérer le corps de la requête JSON
             $jsonBody = file_get_contents("php://input");
             // Transformer le JSON en un tableau PHP associatif
@@ -64,12 +63,16 @@ class HomeController extends Controller
             $email = $data['email'];
             $password = $data['password'];
 
+            Validator::validateAndSanitize($LastName, 3, 50, 'name');
+            Validator::validateAndSanitize($firstName, 3, 50, 'name');
+            Validator::validateAndSanitize($email, 3, 50, 'email');
+            Validator::validateAndSanitize($password, 9, null, 'password');
+
             //vérifier si email existe déjà dans la db
             $user = $this->userModel->getUserByEmail($email);
 
             //si l'email existe déjà -> message d'erreur
-            if (empty($user)) 
-            {
+            if (empty($user)) {
                 http_response_code(400);
                 echo json_encode(["message" => "L'email existe deja."]);
                 return;
@@ -89,10 +92,12 @@ class HomeController extends Controller
             header('Content-Type: application/json');
 
             echo json_encode($response, JSON_PRETTY_PRINT);
-
-        }
-        catch (Exception $e) 
-        {
+        } catch (InvalidArgumentException $e) {
+            // Gérer l'exception d'erreur de validation
+            http_response_code(400);
+            echo json_encode(["error" => $e->getMessage()]);
+            return;
+        } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation de l'utilisateur."], JSON_PRETTY_PRINT);
         }
@@ -169,9 +174,8 @@ class HomeController extends Controller
             // Gérer l'exception d'erreur de validation
             http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
-        } 
-        catch (Exception $e) 
-        {
+            return;
+        } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation de la company."], JSON_PRETTY_PRINT);
         }
@@ -186,6 +190,23 @@ class HomeController extends Controller
     // UPDATE COMPANY  ////////////////////////////////////////////////////////
     public function updateCompany($id)
     {
+        // Récupérer le corps de la requête JSON
+        $jsonBody = file_get_contents("php://input");
+
+        // Transformer le JSON en un tableau PHP associatif
+        $data = json_decode($jsonBody, true);
+
+
+        $companyName = $data['name'];
+        $country = $data['country'];
+        $tva = $data['tva'];
+
+        //valider et sanitiser ici
+
+        Validator::validateAndSanitize($companyName, 3, 50, 'name');
+        Validator::validateAndSanitize($country, 3, 50, 'name');
+        Validator::validateAndSanitize($tva, 'tva');
+
         $this->companiesModel->update($id);
     }
 
@@ -266,9 +287,8 @@ class HomeController extends Controller
             // Gérer l'exception d'erreur de validation
             http_response_code(400);
             echo json_encode(["error" => $e->getMessage()]);
-        } 
-        catch (Exception $e) 
-        {
+            return;
+        } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(["message" => "Une erreur s'est produite lors de la creation de la facture."], JSON_PRETTY_PRINT);
         }
@@ -283,6 +303,18 @@ class HomeController extends Controller
     // UPDATE INVOICE  ////////////////////////////////////////////////////////
     public function updateInvoice($id)
     {
+        // Récupérer le corps de la requête JSON
+        $jsonBody = file_get_contents("php://input");
+        // Transformer le JSON en un tableau PHP associatif
+        $data = json_decode($jsonBody, true);
+
+        $ref = $data['ref'];
+        $date_due = $data['date_due'];
+
+        //valider et sanitiser
+        Validator::validateAndSanitize($ref, 3, 50, 'name');
+        Validator::validateAndSanitize($date_due, 'date');
+
         $this->invoicesModel->updateInvoice($id);
     }
 
@@ -331,17 +363,15 @@ class HomeController extends Controller
             //vérifier si ref existe déjà ans la db
             $contactId = $this->contactsModel->getContactIdByName($contactName);
 
-            //si l'entreprise n'existe pas ->message d'erreur
-            if (!$companyId) 
-            {
+            //si la company n'existe pas ->message d'erreur
+            if (!$companyId) {
                 http_response_code(400);
                 echo json_encode(["message" => "L'entreprise n'existe pas. Veuillez creer l'entreprise avant d'ajouter un contact."]);
                 return;
             }
 
             //si le name existe déjà -> message d'erreur
-            if (!empty($contactId)) 
-            {
+            if ($contactId !== null) {
                 http_response_code(400);
                 echo json_encode(["message" => "Le contact existe deja."]);
                 return;
@@ -351,12 +381,11 @@ class HomeController extends Controller
             $contactData['company_id'] = $companyId;
             //créer le contact
             $contact = $this->contactsModel->createContact($contactName, $companyId, $email, $phone);
-            $response =
-                [
-                    'data' => $contact,
-                    'status' => 200,
-                    'message' => 'Le contact a été créée avec succès.',
-                ];
+            $response = [
+                'data' => $contact,
+                'status' => 200,
+                'message' => 'Le contact a été créé avec succès.',
+            ];
 
             header('Content-Type: application/json');
             echo json_encode($response, JSON_PRETTY_PRINT);
@@ -371,7 +400,7 @@ class HomeController extends Controller
         catch (Exception $e) 
         {
             http_response_code(500);
-            echo json_encode(["message" => "Une erreur s'est produite lors de la creation du contact."], JSON_PRETTY_PRINT);
+            echo json_encode(["message" => "Une erreur s'est produite lors de la creation de la facture."], JSON_PRETTY_PRINT);
         }
     }
 
@@ -384,6 +413,21 @@ class HomeController extends Controller
     // UPDATE CONTACT  ////////////////////////////////////////////////////////
     public function updateContact($id)
     {
+        // Récupérer le corps de la requête JSON
+        $jsonBody = file_get_contents("php://input");
+        // Transformer le JSON en un tableau PHP associatif
+        $data = json_decode($jsonBody, true);
+
+        // Extraire les données nécessaires du tableau associatif
+        $contactName = $data['name'];
+        $email = $data['email'];
+        $phone = $data['phone'];
+
+        //valider et sanitiser
+        Validator::validateAndSanitize($contactName, 3, 50, 'name');
+        Validator::validateAndSanitize($email, 'email');
+        Validator::validateAndSanitize($phone, 'phone');
+
         $this->contactsModel->update($id);
     }
 }

@@ -22,10 +22,6 @@ class Invoices extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -69,10 +65,6 @@ class Invoices extends BaseModel
         $companiesData = $query->fetchAll(PDO::FETCH_ASSOC);
 
 
-        // Convertir en JSON
-        //JSON_PRETTY_PRINT -> meilleure lisibilité lors de l'affichage.
-        $jsonData = json_encode($companiesData, JSON_PRETTY_PRINT);
-
         if (empty($companiesData)) {
             $statusCode = 500;
             $status = 'error';
@@ -105,7 +97,6 @@ class Invoices extends BaseModel
     {
         $invoiceDetails = $this->getInvoiceById($invoiceId);
 
-        $jsonData = json_encode($invoiceDetails, JSON_PRETTY_PRINT);
         // Vérifier si la compagnie a été trouvée
         if (!$invoiceDetails) {
             $message = 'Invoice not found';
@@ -144,7 +135,7 @@ class Invoices extends BaseModel
         );
         $query->bindParam(':id', $invoiceId, PDO::PARAM_INT);
         $query->execute();
-        $invoiceDetails = $query->fetchAll(PDO::FETCH_ASSOC);
+        $invoiceDetails = $query->fetch(PDO::FETCH_ASSOC);
         return $invoiceDetails;
     }
 
@@ -178,6 +169,8 @@ class Invoices extends BaseModel
         //retourner l'ID de l'invoice si une correspondance sinon retourner null
         return $result ? $result['id'] : null;
     }
+
+
     // DELETE INVOICE BY ID ////////////////////////////////////////////////////////////////////////////////////////////
     public function delete($id)
     {
@@ -186,28 +179,25 @@ class Invoices extends BaseModel
         );
 
         $query->bindParam(':id', $id, PDO::PARAM_INT);
-        $query->execute();
-        $companiesid = $query->fetchAll(PDO::FETCH_ASSOC);
+        $success = $query->execute();
 
-        // Convertir en JSON
-        $jsonData = json_encode($companiesid, JSON_PRETTY_PRINT);
-
-        if (empty($companiesid)) {
-            $statusCode = 500;
-            $status = 'error';
-        } else {
+        // Vérifier si la suppression a réussi
+        if ($success) {
             $statusCode = 200;
             $status = 'success';
+            $message = 'Invoice deleted successfully.';
+        } else {
+            $statusCode = 500;
+            $status = 'error';
+            $message = 'Failed to delete invoice.';
         }
 
-        $response =
-            [
-                'message' => 'List of invoices by id',
-                'content-type' => 'application/json',
-                'code' => $statusCode,
-                'status' => $status,
-                'data' => $companiesid,
-            ];
+        $response = [
+            'message' => $message,
+            'content-type' => 'application/json',
+            'code' => $statusCode,
+            'status' => $status,
+        ];
 
         $jsonData = json_encode($response, JSON_PRETTY_PRINT);
 
@@ -225,30 +215,51 @@ class Invoices extends BaseModel
             // Récupérer le corps de la requête JSON
             $body = file_get_contents('php://input');
             $data = json_decode($body);
+            // var_dump($data);
+            // Vérifier si la facture existe déjà
+            $existingInvoice = $this->getInvoiceById($id);
 
-            // Vérifier si le type existe déjà
-            $invoiceId = $this->getInvoiceIdByName($data->ref);
-
-            // Si le type existe déjà, retourner une erreur
-            if ($invoiceId) {
+            // Si la facture n'existe pas, retourner une erreur
+            if (!$existingInvoice) {
                 http_response_code(400);
-                echo json_encode(['message' => 'Invoice already exists']);
+                echo json_encode(['message' => 'Invoice not found']);
                 exit();
             }
 
             // Mettre à jour le type
             $query = $this->connection->prepare(
-                "UPDATE invoices SET ref = :ref, id_company = :id_company, date_due = :date_due, created_at = :created_at, updated_at = :updated_at WHERE id = :id"
+                "UPDATE invoices SET ref = :ref, id_company = :id_company, date_due = :date_due WHERE id = :id"
             );
 
             $query->bindParam(':ref', $data->ref);
             $query->bindParam(':id_company', $data->id_company);
-            $query->bindParam(':cate_due', $data->date_due);
-            $query->bindParam(':created_at', $data->created_at);
-            $query->bindParam(':updated_at', $data->updated_at);
+            $query->bindParam(':date_due', $data->date_due);
             $query->bindParam(':id', $id, PDO::PARAM_INT);
 
-            return $query->execute();
+            $success = $query->execute();
+            // Vérifier si la mise à jour a réussi
+            if ($success) {
+                $statusCode = 200;
+                $status = 'success';
+                $message = 'Invoice updated successfully.';
+            } else {
+                $statusCode = 500;
+                $status = 'error';
+                $message = 'Failed to update invoice.';
+            }
+
+            $response = [
+                'message' => $message,
+                'content-type' => 'application/json',
+                'code' => $statusCode,
+                'status' => $status,
+            ];
+            $jsonData = json_encode($response, JSON_PRETTY_PRINT);
+
+            header('Content-Type: application/json');
+            http_response_code($statusCode);
+
+            echo $jsonData;
         } catch (Exception $e) {
             throw $e;
         }
