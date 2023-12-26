@@ -96,7 +96,7 @@ class Auth extends BaseModel
             return false;
         }
     }
-    private function getTokenFromHeader()
+    public function getTokenFromHeader()
     {
         $header = apache_request_headers();
         $authorizationHeader = $header['Authorization'] ?? '';
